@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Climate Visualization App | Michael Groom</title>
+    <title>Interactive SVG App | Michael Groom</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,51 +14,13 @@
     <h2> Home | <a href="markov-chain.html">Markov Chains</a> | <a href="dag.html">DAGs</a> | <a href="case-studies.html">Case Studies</a>
     </h2>
     <br><br>
-
-    <h3>Interactive Climate Visualization App</h3>
     
-    <p>Welcome to my interactive climate visualization application. This tool provides advanced visualizations of climate predictability patterns using two complementary approaches:</p>
+    <p>This web application contains interactive visualisations of Markov Chains and Directed Acyclic Graphs (DAGs) that I have developed as part of my research on ENSO predictability and interpretabilty of machine learning forecasts of ENSO (to be published in an upcoming paper). The app takes static SVG images of the Markov Chains and DAGs and allows users to interact with them by either hovering over nodes/edges to see information such as transition probabilities, or by clicking on nodes to bring up more detailed information including an MP4 video of the spatio-temporal composite that is associated with each node. The details of the ENSO forecasting system that was used to generate these results can be found in this <a href="https://arxiv.org/abs/2503.01412">preprint</a>.</p>
+    <br>
+    <p>For more information about the development of this application, see this <a href="https://michaelgroom.net/blog.html">blog post</a> on my website.</p>
 
-    <h3>Available Visualizations</h3>
-    
-    <div class="about-list">
-        <ul>
-            <li>
-                <div class="about-info">
-                    <strong><a href="markov-chain.html">Markov Chain Visualizations</a></strong>
-                    <span>Interactive transition graphs showing probabilistic state transitions across 1-24 month lead times. Features hover tooltips, click modals with detailed statistics, and cluster video playback.</span>
-                </div>
-            </li>
-            <li>
-                <div class="about-info">
-                    <strong><a href="dag.html">Directed Acyclic Graph (DAG) Visualizations</a></strong>
-                    <span>Multi-level hierarchical transition graphs displaying climate predictability patterns across lead times. Includes level-based spatial mapping and climatological probability calculations.</span>
-                </div>
-            </li>
-            <li>
-                <div class="about-info">
-                    <strong><a href="case-studies.html">Case Studies</a></strong>
-                    <span>Detailed case study visualizations and analyses (in development).</span>
-                </div>
-            </li>
-        </ul>
-    </div>
-
-    <h3>Technical Features</h3>
-    
-    <p>The application is built with a modular ES6 JavaScript architecture featuring:</p>
-    
-    <ul>
-        <li><strong>15 JavaScript modules</strong> with inheritance-based design for code reuse</li>
-        <li><strong>96 SVG files</strong> across both visualization types</li>
-        <li><strong>450+ MP4 cluster videos</strong> with variable availability per lead time</li>
-        <li><strong>598 historical climate images</strong> from 2000-2024 (original and detrended)</li>
-        <li><strong>Mobile-responsive design</strong> with touch optimization</li>
-        <li><strong>Dark mode support</strong> with automatic system preference detection</li>
-    </ul>
-
-    <p>For more information about the development of this application, see the <a href="https://michaelgroom.net/blog.html">blog post</a> on the main website.</p>
-
+    <br>
+    <hr>
 </body>
 
 <footer>
