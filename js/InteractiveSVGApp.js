@@ -1,4 +1,4 @@
-import { SELECTORS, EVENTS, DAG_CONFIG, DEBUG } from './constants.js';
+import { SELECTORS, DEBUG } from './constants.js';
 import { Logger } from './Logger.js';
 import { SVGLoader } from './SVGLoader.js';
 import { SVGParser } from './SVGParser.js';
@@ -651,15 +651,5 @@ export class InteractiveSVGApp {
     }
 }
 
-// Initialize the application when the DOM is loaded
-document.addEventListener(EVENTS.DOM_CONTENT_LOADED, async () => {
-    Logger.info('DOM loaded, initializing InteractiveSVGApp...');
-    
-    const app = new InteractiveSVGApp();
-    await app.initialize();
-    
-    // Make app globally available for debugging
-    window.interactiveSVGApp = app;
-    
-    Logger.info('InteractiveSVGApp ready');
-});
+// Global initialization removed - each page now handles its own initialization
+// via page-specific initialization methods (initializeMarkovChainSection, initializeDAGSection, etc.)
