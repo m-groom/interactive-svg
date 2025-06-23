@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Markov Chain Visualizations | Michael Groom</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1><a href="https://michaelgroom.net/index.html">Michael Groom</a></h1>
+    <hr>
+    <h2><a href="index.html"> Home</a> | <a href="markov-chain.html">Markov Chains</a> | <a href="dag.html">DAGs</a> | <a href="case-studies.html">Case Studies</a>
+    </h2>
+    <br><br>
+
+    <div class="svg-selector">
+        <div class="info-panel">
+            <h3>Interactive Markov Chain Visualisations</h3>
+            <p>Select an SVG file to load and interact with. Choose lead time and target season (currently only 'All' is available) from dropdowns, then click load.</p>
+            <p><strong>Desktop:</strong>  Hover over nodes and edges to see details, click nodes for more information.</p>
+            <p><strong>Mobile:</strong> Tap nodes and edges to see details, long press nodes for more information.</p>
+        </div>
+
+        <div class="selector-controls">
+            <div class="control-row">
+                <label for="svg-search"><strong>Select Lead Time:</strong></label>
+                <div class="search-container">
+                    <input type="text" id="svg-search"
+                        placeholder="Select from available lead times (1-24) or type to search..." autocomplete="off">
+                    <div class="search-dropdown" id="search-dropdown">
+                        <div class="dropdown-content" id="dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <label for="season-search"><strong>Select Target Season:</strong></label>
+                <div class="search-container">
+                    <input type="text" id="season-search"
+                        placeholder="Select from available target seasons or type to search..." autocomplete="off">
+                    <div class="search-dropdown" id="season-dropdown">
+                        <div class="dropdown-content" id="season-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="load-svg-btn" disabled>Load</button>
+        </div>
+
+        <div class="content-container">
+            <div class="loading" id="loading" style="display: none;">Loading...</div>
+            <div class="error-message" id="error" style="display: none;"></div>
+
+            <div class="svg-container" id="svg-container" style="display: none;">
+                <!-- SVG will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Load the modular JavaScript files -->
+    <script type="module">
+        import { InteractiveSVGApp } from './js/InteractiveSVGApp.js';
+        
+        // Initialize only the Markov Chain section
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new InteractiveSVGApp();
+            app.initializeMarkovChainSection();
+        });
+    </script>
+</body>
+
+<footer>
+    © 2025 Michael Groom. Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+</footer>
+
+</html>

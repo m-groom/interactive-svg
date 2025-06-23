@@ -1,0 +1,1170 @@
+/* CSS Custom Properties (Variables) */
+:root {
+  /* Colors */
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --primary-light: rgba(0, 123, 255, 0.1);
+  --primary-lighter: rgba(0, 123, 255, 0.2);
+  --text-color: black;
+  --text-muted: #999;
+  --text-error: #ff6b6b;
+  --background-primary: white;
+  --background-secondary: #f5f5f5;
+  --background-dark: #2a1a1a;
+  --border-color: #ddd;
+  --border-primary: #007bff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-strong: rgba(0, 0, 0, 0.15);
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 4rem;
+  
+  /* Borders and Radii */
+  --border-width: 2px;
+  --border-radius: 0.5rem;
+  --border-radius-sm: 0.25rem;
+  --border-radius-lg: 8px;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-cubic: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Typography */
+  --font-family: Helvetica, Arial, sans-serif;
+  --font-size-base: 14px;
+  --line-height-base: 1.6em;
+  
+  /* Layout */
+  --content-width-mobile: 95%;
+  --content-width-tablet: 92%;
+  --content-width-desktop: 90%;
+  --max-width-content: 100em;
+  --max-width-heading: 66.67em;
+  
+  /* Interactive elements */
+  --min-touch-target: 44px;
+  --dropdown-max-height: 200px;
+  --tooltip-max-width: 90vw;
+  --modal-max-width: 95vw;
+  --modal-max-height: 95vh;
+}
+
+/* Dark mode color overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: #e0e0e0;
+    --background-primary: #2a2a2a;
+    --background-secondary: #333;
+    --background-dark: #1a1a1a;
+    --border-color: #444;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Universal styles */
+img {
+  max-width: 100%;
+  height: auto;
+  border: var(--border-width) solid var(--text-color);
+}
+
+/* Base styles (mobile-first approach) */
+body {
+  margin: 0 auto;
+  padding: 4px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--text-color);
+  max-width: 100%;
+  overflow-x: hidden;
+  background-color: var(--background-primary);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: sans-serif;
+  font-weight: normal;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.header {
+  background-color: var(--background-secondary);
+  padding: var(--spacing-md);
+  width: 100%;
+}
+
+h1 {
+  font-size: 24px;
+  padding: 16px 8px;
+  margin: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 0;
+  text-align: center;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+hr {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+}
+
+.about-list li {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.about-info {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.date {
+  display: block;
+  text-align: right;
+}
+
+/* Interactive SVG Blog Styles - Mobile First */
+.svg-selector {
+  background: var(--background-secondary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) auto;
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: 0 0.25rem 1.25rem var(--shadow-color);
+  position: relative;
+  overflow: visible;
+  width: var(--content-width-mobile);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.svg-selector .info-panel {
+  margin-bottom: 1rem;
+  width: 100%;
+  order: 1;
+}
+
+.info-panel h3 {
+  width: auto;
+  margin: 0 0 0.75em 0;
+  padding: 0;
+  text-align: left;
+}
+
+.info-panel p {
+  width: auto;
+  margin: 0 0 1em 0;
+  padding: 0;
+  text-align: justify;
+}
+
+.info-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.selector-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  order: 2;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.control-row .search-container {
+  width: 400px;
+  max-width: 60vw;
+}
+
+.selector-controls label {
+  display: inline-block;
+  text-align: left;
+  box-sizing: border-box;
+  margin-right: 1rem;
+  margin-bottom: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.selector-controls button {
+  width: auto;
+  text-align: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-width: 120px;
+  padding: 12px 16px;
+  font-size: 14px;
+  min-height: 44px;
+  white-space: nowrap;
+  overflow: visible;
+  align-self: center;
+}
+
+.content-container {
+  width: 100%;
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.svg-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.svg-container svg {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 0.25rem 0.5rem rgba(0, 0, 0, 0.2));
+}
+
+/* Search container - Mobile First */
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+
+.search-container input {
+  background: var(--background-primary);
+  color: var(--text-color);
+  border: var(--border-width) solid var(--border-primary);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
+  width: 100%;
+  box-sizing: border-box;
+  transition: all var(--transition-normal);
+  min-height: var(--min-touch-target);
+  padding: 12px 40px 12px 16px;
+  cursor: text;
+}
+
+.search-container::after {
+  content: '▼';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #007bff;
+  font-size: 12px;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.search-container.open::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--background-primary);
+  border: var(--border-width) solid var(--border-primary);
+  border-top: none;
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+  max-height: var(--dropdown-max-height);
+  overflow-y: auto;
+  z-index: 9999;
+  display: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin-top: -1px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-dropdown.show {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-bottom: 1px solid var(--border-color);
+  min-height: var(--min-touch-target);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.dropdown-item.selected {
+  background: var(--primary-lighter);
+  color: var(--primary-color);
+}
+
+.dropdown-item .item-title {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.dropdown-item .item-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* SVG Selector Elements */
+.svg-selector label {
+  flex-shrink: 0;
+  color: black;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.svg-selector select {
+  background: var(--background-primary);
+  color: var(--text-color);
+  border: var(--border-width) solid var(--border-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 12px 16px;
+  font-size: var(--font-size-base);
+  width: 100%;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  min-height: var(--min-touch-target);
+  box-sizing: border-box;
+}
+
+.svg-selector button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  padding: 12px 20px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: var(--min-touch-target);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.svg-selector button:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.svg-selector button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.svg-selector button:disabled {
+  background: #666;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  background: var(--background-primary);
+  color: var(--text-color);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  border: var(--border-width) solid var(--border-primary);
+  box-shadow: 0 0.25rem 1rem var(--shadow-strong);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(0.625rem) scale(0.9);
+  transition: all var(--transition-cubic);
+  max-width: var(--tooltip-max-width);
+  z-index: 1000;
+  font-size: 0.8rem;
+  backdrop-filter: blur(0.625rem);
+  text-align: left;
+}
+
+.tooltip.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.tooltip h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.tooltip p {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.tooltip p strong {
+  color: var(--primary-color);
+}
+
+.tooltip ul {
+  margin: 0.3125rem 0;
+  padding-left: 1rem;
+}
+
+.tooltip li {
+  text-align: left;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(0.125rem);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.modal.show {
+  opacity: 1;
+}
+
+.modal-content {
+  background: var(--background-primary);
+  margin: 2vh auto;
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--border-primary);
+  border-radius: var(--border-radius);
+  width: var(--content-width-mobile);
+  max-width: var(--modal-max-width);
+  max-height: var(--modal-max-height);
+  min-height: auto;
+  overflow-y: auto;
+  color: var(--text-color);
+  position: relative;
+  box-shadow: 0 0.5rem 2rem var(--shadow-strong);
+  transform: translateY(2rem) scale(0.9);
+  transition: all var(--transition-cubic);
+  box-sizing: border-box;
+}
+
+/* Mobile modal content layout */
+.modal-content-mobile {
+  width: 100% !important;
+}
+
+.modal-content-mobile .video-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+}
+
+.modal-content-mobile video {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0) scale(1);
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: absolute;
+  right: 1rem;
+  top: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  font-family: Arial, sans-serif;
+  font-weight: normal;
+  line-height: 1;
+  text-align: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Shared close button hover styles */
+.close:hover,
+#close-image-btn:hover {
+  color: var(--primary-color) !important;
+  background: var(--primary-light) !important;
+  transform: rotate(90deg);
+}
+
+/* Consolidated hover effects for interactive elements */
+.dropdown-item:hover,
+.search-container input:hover,
+.svg-selector select:hover {
+  border-color: var(--primary-hover);
+  transition: all var(--transition-normal);
+}
+
+.svg-selector button:hover:not(:disabled),
+.node-interactive:hover,
+.edge-interactive:hover {
+  transition: all var(--transition-normal);
+}
+
+/* Consolidated focus styling for form elements */
+.search-container input:focus,
+.svg-selector select:focus {
+  outline: none;
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 3px var(--primary-lighter);
+}
+
+/* Consolidated spacing for content elements */
+h3, p, ul {
+  margin: 0 auto;
+  text-align: justify;
+}
+
+/* Consolidated responsive content widths */
+@media (max-width: 480px) {
+  h3, p, ul, hr {
+    width: var(--content-width-mobile);
+    padding: 0 var(--spacing-sm);
+  }
+}
+
+@media (min-width: 481px) {
+  h3, p, ul, hr {
+    width: var(--content-width-tablet);
+    padding: 0 12px;
+  }
+}
+
+@media (min-width: 901px) {
+  h3, p, ul, hr {
+    width: var(--content-width-desktop);
+    padding: 0 16px;
+  }
+  
+  h3 {
+    max-width: var(--max-width-heading);
+  }
+  
+  p, ul, hr {
+    max-width: var(--max-width-content);
+  }
+}
+
+.modal h3 {
+  color: var(--primary-color);
+  margin: 1.5rem 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.modal p strong {
+  color: var(--primary-color);
+}
+
+.modal ul {
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+}
+
+.modal li {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Custom scrollbar for modal */
+.modal-content::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Modal content sizing fix - prevents cropping in narrow desktop windows */
+#modal-media-container {
+  max-width: 100% !important;
+  box-sizing: border-box;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Let JavaScript handle exact sizing, CSS provides overflow protection */
+#modal-media-container .video-container,
+#modal-media-container #modal-image-container.image-container {
+  flex: 0 0 auto !important;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ensure content doesn't exceed modal bounds but allow JavaScript sizing */
+#modal-media-container video,
+#modal-date-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* Error and loading states */
+.error-message {
+  color: var(--text-error);
+  text-align: left;
+  padding: var(--spacing-md);
+  background-color: var(--background-dark);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-md) 0;
+  font-size: 0.9rem;
+}
+
+.error-message ol {
+  color: #ccc;
+  margin: var(--spacing-sm) 0;
+}
+
+.error-message li {
+  margin: var(--spacing-xs) 0;
+}
+
+.error-message strong {
+  color: var(--primary-color);
+}
+
+.loading {
+  text-align: center;
+  color: var(--primary-color);
+  font-size: 1rem;
+  margin: var(--spacing-md) 0;
+}
+
+/* SVG interaction styles */
+.node-interactive {
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.node-interactive:hover {
+  filter: brightness(1.3);
+  stroke: var(--primary-color) !important;
+  stroke-width: 3 !important;
+}
+
+.edge-interactive {
+  cursor: pointer;
+}
+
+.edge-interactive:hover {
+  opacity: 0.8;
+  filter: brightness(1.2);
+}
+
+/* Node highlight class - blue color for nodes */
+.highlight-node {
+  stroke: var(--primary-color) !important;
+  stroke-width: 3 !important;
+  filter: brightness(1.3) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+/* Edge highlight class - preserve original color for edges */
+.highlight-edge {
+  stroke-width: max(4px, var(--original-stroke-width, 4px)) !important;
+  opacity: 0.9 !important;
+  filter: brightness(1.3) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+/* Make text elements pass through mouse events to nodes underneath */
+svg text,
+svg g,
+svg use {
+  pointer-events: none;
+}
+
+/* Small mobile styles (max-width: 480px) */
+@media (max-width: 480px) {
+  body {
+    padding: 2px;
+  }
+
+  .selector-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .control-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .selector-controls label {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: auto;
+    text-align: left;
+  }
+
+  .selector-controls button {
+    width: 100%;
+    margin-right: 0;
+    min-width: auto;
+    flex-shrink: 1;
+    align-self: stretch;
+  }
+
+  .search-container,
+  .control-row .search-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .search-container input {
+    padding-right: 30px;
+  }
+
+  .search-container::after {
+    right: 8px;
+  }
+
+  /* Mobile modal adjustments */
+  .modal-content {
+    margin: 1vh auto;
+    padding: 0.75rem;
+    max-height: 98vh;
+    width: 98%;
+    max-width: 98vw;
+  }
+
+  .modal h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-content video {
+    max-height: 50vh;
+  }
+}
+
+/* Tablet styles (481px - 900px) */
+@media (min-width: 481px) {
+  body {
+    font-size: 15px;
+    padding: 8px;
+  }
+
+  h1 {
+    font-size: 28px;
+    padding: 20px 16px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  .header {
+    padding: 20px;
+  }
+
+  .svg-selector {
+    padding: 1.25rem;
+    margin: 1.5rem auto;
+    width: 90%;
+  }
+
+  .tooltip {
+    font-size: 0.85rem;
+    max-width: 24rem;
+    padding: 0.875rem 1.125rem;
+  }
+
+  .tooltip h4 {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    margin: 3vh auto;
+    padding: 1.25rem;
+    width: 90%;
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+
+  .close {
+    font-size: 1.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .selector-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .control-row {
+    gap: 1rem;
+  }
+
+  .control-row .search-container {
+    width: 350px;
+    max-width: 50vw;
+  }
+
+  .selector-controls label {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    width: 180px;
+  }
+
+  .selector-controls button {
+    width: auto;
+    max-width: 200px;
+    min-width: 120px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+
+  .search-container input {
+    width: 100%;
+  }
+}
+
+/* Desktop styles (901px+) */
+@media (min-width: 901px) {
+  body {
+    font-size: 16px;
+    padding: 4px;
+  }
+
+  h1 {
+    font-size: 48px;
+    padding: 32px;
+  }
+
+  h2 {
+    font-size: 32px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  hr {
+    margin-bottom: 2em;
+  }
+
+  .header {
+    padding: 32px;
+    max-width: 100em;
+  }
+
+  .about-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .about-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .date {
+    margin-left: 20px;
+    text-align: right;
+  }
+
+  .svg-selector {
+    padding: 2rem;
+    margin: 2rem auto;
+    width: 80%;
+    max-width: 80vw;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .svg-selector .info-panel {
+    order: 1;
+    margin-bottom: 1.5rem;
+    width: 100%;
+  }
+
+  .selector-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    order: 2;
+    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .control-row {
+    gap: 1.5rem;
+  }
+
+  .control-row .search-container {
+    width: 450px;
+    max-width: 55vw;
+  }
+
+  .selector-controls label {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    width: 200px;
+  }
+
+  .selector-controls button {
+    width: auto;
+    padding: 12px 20px;
+    min-width: 120px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .content-container {
+    order: 3;
+    width: 100%;
+  }
+
+  .search-container {
+    width: 450px;
+    flex-shrink: 0;
+  }
+
+  .tooltip {
+    font-size: 0.875rem;
+    max-width: 28rem;
+    padding: 1rem 1.125rem;
+  }
+
+  .tooltip h4 {
+    font-size: 1.1rem;
+  }
+
+  .modal-content {
+    padding: 2rem;
+    width: 90%;
+    max-width: 90vw;
+    max-height: 80vh;
+    min-height: 60vh;
+    overflow-x: auto;
+  }
+
+  .close {
+    font-size: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    right: 1.25rem;
+    top: 0.9375rem;
+  }
+
+  .modal h3 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Large desktop styles (1200px+) */
+@media (min-width: 1200px) {
+  .svg-selector {
+    width: 70%;
+    max-width: 1200px;
+  }
+
+  .tooltip {
+    max-width: 32rem;
+  }
+
+  .modal-content {
+    max-width: 90vw;
+  }
+}
+
+/* Extra large screens (1600px+) */
+@media (min-width: 1600px) {
+  .svg-selector {
+    width: 60%;
+    max-width: 1400px;
+  }
+
+  .modal-content {
+    max-width: 90vw;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .svg-selector {
+    border-width: 1px;
+  }
+
+  .search-container input,
+  .svg-selector select,
+  .svg-selector button {
+    border-width: 1px;
+  }
+}
+
+/* Landscape orientation on mobile devices */
+@media (max-width: 900px) and (orientation: landscape) {
+  .modal-content {
+    margin: 2vh auto;
+    max-height: 90vh;
+  }
+
+  .svg-selector {
+    margin: 1rem auto;
+  }
+}
+
+/* Print styles */
+@media print {
+  .svg-selector button,
+  .search-container,
+  .tooltip,
+  .modal {
+    display: none !important;
+  }
+
+  .svg-selector {
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+}
+
+/* Footer styles */
+footer {
+  color: var(--text-color);
+  text-align: center;
+  padding: 1em 0;
+}
+
+footer a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+/* End Footer Styles */
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode support - Additional overrides beyond CSS variables */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--background-dark);
+  }
+
+  .selector-controls label {
+    color: var(--text-color);
+  }
+
+  .dropdown-item:hover {
+    background: var(--primary-lighter);
+  }
+
+  footer a {
+    color: #58a6ff;
+  }
+}
