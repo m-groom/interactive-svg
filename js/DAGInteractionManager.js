@@ -635,11 +635,27 @@ export class DAGInteractionManager extends BaseInteractionManager {
                 let filename;
                 
                 if (levelNum === 0) {
-                    // TEMPORARY: Use placeholder video for level 0 observed classes (La Niña, Neutral, El Niño)
-                    // This allows the modal to display properly with active date image functionality
-                    // TODO: Replace with actual observed class videos when available
-                    filename = `mp4_files/combined-cluster1-1months.mp4`;
-                    Logger.debug(`Video filename request: Level 0 observed class → using PLACEHOLDER: ${filename} (global ID ${globalId}, original level ${levelNum})`);
+                    // Level 0 observed classes: Use specific MP4 videos based on ev values
+                    // ev = -1.0 → La Nina, ev = 0.0 → Neutral, ev = 1.0 → El Nino
+                    const nodeData = this.dagParser.getNodeData(globalId);
+                    if (nodeData && nodeData.ev !== undefined) {
+                        if (nodeData.ev === -1.0) {
+                            filename = `mp4_files/lanina-detrended.mp4`;
+                        } else if (nodeData.ev === 0.0) {
+                            filename = `mp4_files/neutral-detrended.mp4`;
+                        } else if (nodeData.ev === 1.0) {
+                            filename = `mp4_files/elnino-detrended.mp4`;
+                        } else {
+                            // Fallback for unexpected ev values
+                            filename = `mp4_files/neutral-detrended.mp4`;
+                            Logger.warn(`Unexpected ev value ${nodeData.ev} for level 0 node ${globalId}, using neutral MP4`);
+                        }
+                        Logger.debug(`Level 0 MP4 mapping: ev=${nodeData.ev} → ${filename} (global ID ${globalId})`);
+                    } else {
+                        // Fallback if nodeData not available
+                        filename = `mp4_files/neutral-detrended.mp4`;
+                        Logger.warn(`No nodeData found for level 0 global ID ${globalId}, using neutral MP4 fallback`);
+                    }
                 } else {
                     // Generate filename using the standard template for predicted clusters
                     // Use original levelNum instead of potentially modified leadTime parameter
