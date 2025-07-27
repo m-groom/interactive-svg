@@ -81,7 +81,11 @@ export const SELECTORS = {
     
     // Search interface - Case Study section
     CASE_STUDY_YEAR_INPUT: '#target-year',
-    CASE_STUDY_MONTH_SELECT: '#target-month',
+    CASE_STUDY_YEAR_DROPDOWN: '#target-year-dropdown',
+    CASE_STUDY_YEAR_DROPDOWN_CONTENT: '#target-year-dropdown-content',
+    CASE_STUDY_MONTH_INPUT: '#target-month',
+    CASE_STUDY_MONTH_DROPDOWN: '#target-month-dropdown',
+    CASE_STUDY_MONTH_DROPDOWN_CONTENT: '#target-month-dropdown-content',
     CASE_STUDY_LEADTIME_INPUT: '#case-study-leadtime',
     CASE_STUDY_LEADTIME_DROPDOWN: '#case-study-leadtime-dropdown',
     CASE_STUDY_LEADTIME_DROPDOWN_CONTENT: '#case-study-leadtime-dropdown-content',
@@ -89,8 +93,7 @@ export const SELECTORS = {
     CASE_STUDY_LOADING: '#case-study-loading',
     CASE_STUDY_ERROR: '#case-study-error',
     CASE_STUDY_CONTENT: '#case-study-content',
-    CASE_STUDY_VIDEO: '#case-study-video',
-    CASE_STUDY_IMAGE: '#case-study-image',
+    CASE_STUDY_MEDIA_CONTAINER: '#case-study-media-container',
     
     // SVG elements
     SVG_NODES: 'path[fill-rule="nonzero"][stroke-width="1"]',

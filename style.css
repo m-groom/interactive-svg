@@ -1139,154 +1139,120 @@ footer a {
 }
 /* End Footer Styles */
 
-/* Case Study Styles */
+/* Case Study Styles - Match modal layout exactly */
 .case-study-content {
   width: 100%;
   margin-top: var(--spacing-lg);
 }
 
-.case-study-info {
-  background: var(--background-secondary);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-lg);
-  border: var(--border-width) solid var(--border-color);
-}
-
-.case-study-info h4 {
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--primary-color);
-  font-size: 1.1rem;
-}
-
-.case-study-info p {
-  margin: var(--spacing-xs) 0;
-  font-size: 0.9rem;
-}
-
-.media-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-lg);
-  align-items: start;
-}
-
-.video-panel,
-.image-panel {
-  background: var(--background-secondary);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius);
-  border: var(--border-width) solid var(--border-color);
-  text-align: center;
-}
-
-.video-panel h4,
-.image-panel h4 {
-  margin: 0 0 var(--spacing-md) 0;
-  color: var(--primary-color);
-  font-size: 1rem;
-}
-
-#case-study-video {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--border-radius-sm);
-  aspect-ratio: 3634 / 4457; /* Preserve video aspect ratio from existing code */
-}
-
-#case-study-image {
-  max-width: 100%;
-  height: auto;
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-}
-
-.media-caption {
-  margin: var(--spacing-sm) 0 0 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* Year input styling to match existing inputs */
-#target-year {
-  background: var(--background-primary);
-  color: var(--text-color);
-  border: var(--border-width) solid var(--border-primary);
-  border-radius: var(--border-radius-lg);
-  padding: 12px 16px;
-  font-size: var(--font-size-base);
-  width: 100%;
-  transition: all var(--transition-normal);
-  cursor: text;
-  min-height: var(--min-touch-target);
+/* Case study media container - match modal media container and use full available space */
+#case-study-media-container {
+  max-width: 100% !important;
   box-sizing: border-box;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 90% !important;
+  margin: 0 auto !important;
 }
 
-#target-year:hover {
-  border-color: var(--primary-hover);
+/* Video and image containers - match modal behavior exactly */
+#case-study-media-container .video-container,
+#case-study-media-container .image-container {
+  flex: 0 0 auto !important;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-#target-year:focus {
-  outline: none;
-  border-color: var(--border-primary);
-  box-shadow: 0 0 0 3px var(--primary-lighter);
+/* Ensure video and image have consistent sizing */
+#case-study-media-container .video-container {
+  width: auto;
+  height: auto;
 }
 
-#target-month {
-  background: var(--background-primary);
-  color: var(--text-color);
-  border: var(--border-width) solid var(--border-primary);
-  border-radius: var(--border-radius-lg);
-  padding: 12px 16px;
-  font-size: var(--font-size-base);
-  width: 100%;
-  transition: all var(--transition-normal);
-  cursor: pointer;
-  min-height: var(--min-touch-target);
-  box-sizing: border-box;
+#case-study-media-container .image-container {
+  width: auto;
+  height: auto;
 }
 
-#target-month:hover {
-  border-color: var(--primary-hover);
+/* Ensure content doesn't exceed bounds but allow JavaScript sizing - match modal behavior */
+#case-study-media-container video,
+#case-study-media-container img {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
 }
 
-#target-month:focus {
-  outline: none;
-  border-color: var(--border-primary);
-  box-shadow: 0 0 0 3px var(--primary-lighter);
+/* Case study dropdowns - side by side styling */
+.control-row .search-container:first-of-type {
+  margin-right: 1rem;
+  width: 200px;
+  max-width: 25vw;
 }
 
-/* Mobile responsive layout for case studies */
-@media (max-width: 768px) {
-  .media-container {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+.control-row .search-container:nth-of-type(2) {
+  width: 200px; 
+  max-width: 25vw;
+}
+
+/* Lead time dropdown should match combined width of target date dropdowns */
+.control-row .search-container:has(#case-study-leadtime) {
+  width: calc(200px + 1rem + 200px) !important;
+  max-width: calc(25vw + 1rem + 25vw) !important;
+}
+
+/* Mobile responsive layout for case studies - match modal behavior */
+@media (max-width: 900px) {
+  #case-study-media-container {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    width: 95% !important;
   }
   
-  .case-study-info p {
-    font-size: 0.85rem;
+  .control-row .search-container:first-of-type {
+    margin-right: 0.5rem;
+    width: 140px;
+    max-width: 40vw;
   }
   
-  #case-study-video {
-    max-height: 50vh;
+  .control-row .search-container:nth-of-type(2) {
+    width: 140px;
+    max-width: 40vw;
+  }
+  
+  /* Lead time dropdown mobile responsive */
+  .control-row .search-container:has(#case-study-leadtime) {
+    width: calc(140px + 0.5rem + 140px) !important;
+    max-width: calc(40vw + 0.5rem + 40vw) !important;
+  }
+  
+  /* Ensure media content is properly sized on mobile */
+  #case-study-media-container video,
+  #case-study-media-container img {
+    max-width: 95vw !important;
+    max-height: 50vh !important;
   }
 }
 
-/* Tablet responsive layout for case studies */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .media-container {
-    gap: var(--spacing-lg);
+@media (max-width: 480px) {
+  .control-row .search-container:first-of-type,
+  .control-row .search-container:nth-of-type(2) {
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
   }
-}
-
-/* Large screen optimizations */
-@media (min-width: 1200px) {
-  .case-study-content {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+  
+  /* Lead time dropdown small mobile */
+  .control-row .search-container:has(#case-study-leadtime) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .control-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
