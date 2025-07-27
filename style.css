@@ -1151,37 +1151,34 @@ footer a {
   box-sizing: border-box;
   justify-content: center !important;
   align-items: center !important;
-  width: 90% !important;
+  width: 100% !important;
   margin: 0 auto !important;
 }
 
 /* Video and image containers - match modal behavior exactly */
 #case-study-media-container .video-container,
 #case-study-media-container .image-container {
-  flex: 0 0 auto !important;
-  max-width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex: 1 1 auto;
+  max-width: 50%;
 }
 
-/* Ensure video and image have consistent sizing */
-#case-study-media-container .video-container {
-  width: auto;
-  height: auto;
-}
-
+/* Ensure video and image have the same constraints */
+#case-study-media-container .video-container,
 #case-study-media-container .image-container {
-  width: auto;
-  height: auto;
+  min-width: 0;
 }
 
 /* Ensure content doesn't exceed bounds but allow JavaScript sizing - match modal behavior */
 #case-study-media-container video,
 #case-study-media-container img {
-  max-width: 100%;
-  max-height: 60vh;
+  max-width: 90%;
+  max-height: 70vh;
   object-fit: contain;
+  width: auto;
+  height: auto;
 }
 
 /* Case study dropdowns - side by side styling */
@@ -1197,7 +1194,8 @@ footer a {
 }
 
 /* Lead time dropdown should match combined width of target date dropdowns */
-.control-row .search-container:has(#case-study-leadtime) {
+/* Target the lead time control row's search container specifically */
+.control-row:nth-child(2) .search-container {
   width: calc(200px + 1rem + 200px) !important;
   max-width: calc(25vw + 1rem + 25vw) !important;
 }
@@ -1222,16 +1220,18 @@ footer a {
   }
   
   /* Lead time dropdown mobile responsive */
-  .control-row .search-container:has(#case-study-leadtime) {
+  .control-row:nth-child(2) .search-container {
     width: calc(140px + 0.5rem + 140px) !important;
     max-width: calc(40vw + 0.5rem + 40vw) !important;
   }
   
-  /* Ensure media content is properly sized on mobile */
+  /* Ensure media content is properly sized on mobile - consistent sizing */
   #case-study-media-container video,
   #case-study-media-container img {
-    max-width: 95vw !important;
+    max-width: 90vw !important;
     max-height: 50vh !important;
+    width: 90vw !important;
+    height: auto !important;
   }
 }
 
@@ -1245,7 +1245,7 @@ footer a {
   }
   
   /* Lead time dropdown small mobile */
-  .control-row .search-container:has(#case-study-leadtime) {
+  .control-row:nth-child(2) .search-container {
     width: 100% !important;
     max-width: none !important;
   }

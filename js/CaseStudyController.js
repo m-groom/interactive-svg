@@ -483,12 +483,11 @@ export class CaseStudyController {
             let calculatedVideoWidth = vhInPx * CONFIG.VIDEO_ASPECT_RATIO;
             const actualVideoColumnWidthPx = Math.max(minColWidthPx, Math.min(calculatedVideoWidth, maxColWidthPx));
             
-            const videoColumnStyle = `flex: 0 0 ${actualVideoColumnWidthPx}px; max-width: ${actualVideoColumnWidthPx}px;`;
-
+            // Let CSS handle sizing instead of JavaScript
             videoContent = `
-                <div class="video-container" style="${videoColumnStyle}">
+                <div class="video-container">
                     <video controls autoplay loop muted playsinline preload="metadata" 
-                           style="width: 100%; height: auto; aspect-ratio: ${CONFIG.VIDEO_ASPECT_RATIO}; border-radius: 0.5rem; max-height: ${maxVideoHeightVh}vh; object-fit: contain;">
+                           style="width: auto; height: auto; aspect-ratio: ${CONFIG.VIDEO_ASPECT_RATIO}; border-radius: 0.5rem; object-fit: contain;">
                         <source src="${videoSrc}" type="video/mp4">
                         <p>Your browser does not support the video tag. Video file: ${videoSrc}</p>
                     </video>
@@ -496,10 +495,10 @@ export class CaseStudyController {
             `;
         }
 
-        // Image container (same logic as modal)
+        // Image container (same logic as modal) - let CSS handle sizing
         const imageContainer = `
-            <div id="case-study-image-container" class="image-container" style="flex: 0 0 auto; margin: 0; padding: 0;">
-                <img id="case-study-image" style="border-radius: 0.5rem; object-fit: contain; display: block; margin: 0; padding: 0; border: none;" src="${imageSrc}" alt="Climate pattern for ${caseStudyData.initial.displayString}" />
+            <div id="case-study-image-container" class="image-container">
+                <img id="case-study-image" style="border-radius: 0.5rem; object-fit: contain; display: block; margin: 0; padding: 0; border: none; width: auto; height: auto;" src="${imageSrc}" alt="Climate pattern for ${caseStudyData.initial.displayString}" />
             </div>
         `;
 
