@@ -15,10 +15,98 @@
     </h2>
     <br><br>
 
-    <p><em>Case studies are currently in development. Please check back for updates soon!</em></p>
+    <div class="svg-selector">
+        <div class="info-panel">
+            <h3>Interactive Case Studies</h3>
+            <p>Select a target date and lead time to explore specific climate forecast scenarios. The system will display the forecasted video pattern for your selected target date and lead time, alongside the observed climate pattern from the corresponding initial forecast date.</p>
+            <p><strong>Target Date:</strong> Choose any month from January 2002 to December 2024.</p>
+            <p><strong>Lead Time:</strong> Select forecast lead time from 1 to 24 months.</p>
+        </div>
+
+        <div class="selector-controls">
+            <div class="control-row">
+                <label for="target-year"><strong>Target Year:</strong></label>
+                <input type="number" id="target-year" min="2002" max="2024" value="2024" 
+                       placeholder="2002-2024" autocomplete="off">
+            </div>
+            
+            <div class="control-row">
+                <label for="target-month"><strong>Target Month:</strong></label>
+                <select id="target-month">
+                    <option value="">Select month...</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            
+            <div class="control-row">
+                <label for="case-study-leadtime"><strong>Lead Time:</strong></label>
+                <div class="search-container">
+                    <input type="text" id="case-study-leadtime"
+                        placeholder="Select lead time (1-24 months) or type to search..." autocomplete="off">
+                    <div class="search-dropdown" id="case-study-leadtime-dropdown">
+                        <div class="dropdown-content" id="case-study-leadtime-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="case-study-load-btn" disabled>Load Case Study</button>
+        </div>
+
+        <div class="content-container">
+            <div class="loading" id="case-study-loading" style="display: none;">Loading case study...</div>
+            <div class="error-message" id="case-study-error" style="display: none;"></div>
+
+            <div class="case-study-content" id="case-study-content" style="display: none;">
+                <div class="case-study-info">
+                    <h4>Case Study Details</h4>
+                    <p><strong>Target Date:</strong> <span id="display-target-date">-</span></p>
+                    <p><strong>Lead Time:</strong> <span id="display-lead-time">-</span></p>
+                    <p><strong>Initial Forecast Date:</strong> <span id="display-initial-date">-</span></p>
+                </div>
+                
+                <div class="media-container">
+                    <div class="video-panel">
+                        <h4>Forecasted Pattern</h4>
+                        <video id="case-study-video" controls preload="metadata">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p class="media-caption">Composite pattern forecasted for the target date</p>
+                    </div>
+                    
+                    <div class="image-panel">
+                        <h4>Observed Pattern</h4>
+                        <img id="case-study-image" alt="Observed climate pattern" style="max-width: 100%; height: auto;">
+                        <p class="media-caption">Observed climate pattern at initial forecast date</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <br>
     <hr>
+
+    <!-- Load the modular JavaScript files -->
+    <script type="module">
+        import { InteractiveSVGApp } from './js/InteractiveSVGApp.js';
+        
+        // Initialize only the Case Study section
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new InteractiveSVGApp();
+            app.initializeCaseStudySection();
+        });
+    </script>
 
 </body>
 

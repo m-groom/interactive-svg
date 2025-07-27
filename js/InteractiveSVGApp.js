@@ -9,6 +9,8 @@ import { DAGParser } from './DAGParser.js';
 import { DAGInteractionManager } from './DAGInteractionManager.js';
 import { JSONParser } from './JSONParser.js';
 import { BaseParser } from './BaseParser.js';
+import { CaseStudyController } from './CaseStudyController.js';
+import { BaseDataLoader } from './BaseDataLoader.js';
 
 export class InteractiveSVGApp {
     constructor() {
@@ -26,6 +28,10 @@ export class InteractiveSVGApp {
         this.dagParser = new DAGParser();
         this.dagUiController = new UIController();
         this.dagInteractionManager = new DAGInteractionManager(this.dagSvgLoader, this.dagParser);
+        
+        // Case Study section components
+        this.caseStudyController = new CaseStudyController();
+        this.caseStudyDataLoader = new BaseDataLoader();
         
         this.isInitialized = false;
     }
@@ -626,6 +632,99 @@ export class InteractiveSVGApp {
             Logger.error('Failed to initialize DAG section:', error);
             this.showDAGError('Failed to initialize DAG section: ' + error.message);
         }
+    }
+
+    /**
+     * Initialize only the Case Study section (for case-studies.html page)
+     */
+    async initializeCaseStudySection() {
+        try {
+            Logger.info('Initializing Case Study section only...');
+            
+            // Initialize case study controller
+            this.caseStudyController.initialize();
+            
+            // Initialize data loader with case study elements
+            this.caseStudyDataLoader.initialize(
+                document.querySelector(SELECTORS.CASE_STUDY_LOADING),
+                document.querySelector(SELECTORS.CASE_STUDY_ERROR)
+            );
+            
+            // Set up case study callback
+            this.caseStudyController.setOnCaseStudySelectedCallback((caseStudyData) => {
+                this.loadCaseStudy(caseStudyData);
+            });
+
+            this.isInitialized = true;
+            Logger.info('Case Study section initialized successfully');
+
+        } catch (error) {
+            Logger.error('Failed to initialize Case Study section:', error);
+            this.showCaseStudyError('Failed to initialize Case Study section: ' + error.message);
+        }
+    }
+
+    /**
+     * Load and display case study content
+     * @param {Object} caseStudyData - Case study parameters and file paths
+     */
+    async loadCaseStudy(caseStudyData) {
+        if (!this.isInitialized) {
+            Logger.error('App not initialized');
+            return;
+        }
+
+        try {
+            Logger.debug('Loading case study:', caseStudyData);
+            
+            this.caseStudyController.showLoading();
+            
+            // Validate file existence first
+            const videoExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.video);
+            const imageExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.image);
+            
+            let errorMessages = [];
+            if (!videoExists) {
+                errorMessages.push(`Video file not found: ${caseStudyData.filePaths.video}`);
+            }
+            if (!imageExists) {
+                errorMessages.push(`Image file not found: ${caseStudyData.filePaths.image}`);
+            }
+            
+            if (errorMessages.length > 0) {
+                throw new Error(errorMessages.join('\n'));
+            }
+            
+            // Files exist, display the case study
+            this.caseStudyController.displayCaseStudy(
+                caseStudyData,
+                caseStudyData.filePaths.video,
+                caseStudyData.filePaths.image
+            );
+            
+            Logger.info('Case study loaded successfully:', {
+                target: caseStudyData.target.displayString,
+                leadTime: caseStudyData.leadTime,
+                initial: caseStudyData.initial.displayString
+            });
+
+        } catch (error) {
+            Logger.error('Failed to load case study:', error);
+            this.caseStudyController.showError('Failed to load case study: ' + error.message);
+        }
+    }
+
+    /**
+     * Show case study error message
+     * @param {string} message - Error message
+     */
+    showCaseStudyError(message) {
+        const errorElement = document.querySelector(SELECTORS.CASE_STUDY_ERROR);
+        if (errorElement) {
+            errorElement.innerHTML = message;
+            errorElement.style.display = 'block';
+        }
+        Logger.error('Case Study App Error:', message);
     }
 
     reset() {

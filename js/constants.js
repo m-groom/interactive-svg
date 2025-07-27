@@ -79,6 +79,19 @@ export const SELECTORS = {
     DAG_SEASON_DROPDOWN_CONTENT: '#dag-season-dropdown-content',
     DAG_LOAD_BUTTON: '#dag-load-svg-btn',
     
+    // Search interface - Case Study section
+    CASE_STUDY_YEAR_INPUT: '#target-year',
+    CASE_STUDY_MONTH_SELECT: '#target-month',
+    CASE_STUDY_LEADTIME_INPUT: '#case-study-leadtime',
+    CASE_STUDY_LEADTIME_DROPDOWN: '#case-study-leadtime-dropdown',
+    CASE_STUDY_LEADTIME_DROPDOWN_CONTENT: '#case-study-leadtime-dropdown-content',
+    CASE_STUDY_LOAD_BUTTON: '#case-study-load-btn',
+    CASE_STUDY_LOADING: '#case-study-loading',
+    CASE_STUDY_ERROR: '#case-study-error',
+    CASE_STUDY_CONTENT: '#case-study-content',
+    CASE_STUDY_VIDEO: '#case-study-video',
+    CASE_STUDY_IMAGE: '#case-study-image',
+    
     // SVG elements
     SVG_NODES: 'path[fill-rule="nonzero"][stroke-width="1"]',
     SVG_EDGES: 'path[fill="none"]',
