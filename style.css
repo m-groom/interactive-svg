@@ -1193,36 +1193,28 @@ footer a {
   }
 }
 
-/* Case study dropdowns - side by side styling */
-.control-row .search-container:first-of-type {
+/* Case study dropdowns - side by side styling - only apply to case studies page */
+.case-studies-page .control-row .search-container:first-of-type {
   margin-right: 1rem;
   width: 200px;
   max-width: 25vw;
 }
 
-.control-row .search-container:nth-of-type(2) {
+.case-studies-page .control-row .search-container:nth-of-type(2) {
   width: 200px; 
   max-width: 25vw;
 }
 
-/* Lead time dropdown should match combined width of target date dropdowns */
-/* Target the lead time dropdown container by ID */
-#case-study-leadtime-dropdown {
-  width: calc(200px + 1rem + 200px) !important;
-  max-width: calc(25vw + 1rem + 25vw) !important;
+/* Lead time dropdown should take full available width like other pages */
+.case-studies-page .selector-controls .control-row:last-child .search-container {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
-/* Target the search container that contains the lead time dropdown */
-#case-study-leadtime {
-  width: calc(200px + 1rem + 200px) !important;
-  max-width: calc(25vw + 1rem + 25vw) !important;
-}
-
-/* Also ensure the parent search container is wide enough */
-.search-container:has(#case-study-leadtime),
-.search-container:has(input#case-study-leadtime) {
-  width: calc(200px + 1rem + 200px) !important;
-  max-width: calc(25vw + 1rem + 25vw) !important;
+/* Alternative backup selector */
+.case-studies-page label[for="case-study-leadtime"] + .search-container {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 /* Mobile responsive layout for case studies - match modal behavior */
@@ -1233,26 +1225,22 @@ footer a {
     width: 95% !important;
   }
   
-  .control-row .search-container:first-of-type {
+  .case-studies-page .control-row .search-container:first-of-type {
     margin-right: 0.5rem;
     width: 140px;
     max-width: 40vw;
   }
   
-  .control-row .search-container:nth-of-type(2) {
+  .case-studies-page .control-row .search-container:nth-of-type(2) {
     width: 140px;
     max-width: 40vw;
   }
   
-  /* Lead time dropdown mobile responsive */
-  #case-study-leadtime {
-    width: calc(140px + 0.5rem + 140px) !important;
-    max-width: calc(40vw + 0.5rem + 40vw) !important;
-  }
-  
-  .search-container:has(#case-study-leadtime) {
-    width: calc(140px + 0.5rem + 140px) !important;
-    max-width: calc(40vw + 0.5rem + 40vw) !important;
+  /* Lead time dropdown mobile responsive - full width */
+  .case-studies-page .selector-controls .control-row:last-child .search-container,
+  .case-studies-page label[for="case-study-leadtime"] + .search-container {
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   /* Ensure media content is properly sized on mobile - consistent sizing */
@@ -1266,21 +1254,17 @@ footer a {
 }
 
 @media (max-width: 480px) {
-  .control-row .search-container:first-of-type,
-  .control-row .search-container:nth-of-type(2) {
+  .case-studies-page .control-row .search-container:first-of-type,
+  .case-studies-page .control-row .search-container:nth-of-type(2) {
     width: 100%;
     max-width: none;
     margin-right: 0;
     margin-bottom: 0.5rem;
   }
   
-  /* Lead time dropdown small mobile */
-  #case-study-leadtime {
-    width: 100% !important;
-    max-width: none !important;
-  }
-  
-  .search-container:has(#case-study-leadtime) {
+  /* Lead time dropdown small mobile - full width */
+  .case-studies-page .selector-controls .control-row:last-child .search-container,
+  .case-studies-page label[for="case-study-leadtime"] + .search-container {
     width: 100% !important;
     max-width: none !important;
   }
