@@ -3,7 +3,7 @@ import { Logger } from './Logger.js';
 import { Utils } from './Utils.js';
 
 export class UIController {
-    constructor(selectors = null, seasonOnlyMode = false) {
+    constructor(selectors = null, seasonOnlyMode = false, leadTimeOnlyMode = false) {
         // Use provided selectors or default to Markov Chain selectors
         this.selectors = selectors || {
             searchInput: SELECTORS.SEARCH_INPUT,
@@ -14,8 +14,9 @@ export class UIController {
             seasonDropdownContent: SELECTORS.SEASON_DROPDOWN_CONTENT,
             loadButton: SELECTORS.LOAD_BUTTON
         };
-        
+
         this.seasonOnlyMode = seasonOnlyMode;
+        this.leadTimeOnlyMode = leadTimeOnlyMode;
         
         this.searchInput = null;
         this.searchDropdown = null;
@@ -38,13 +39,27 @@ export class UIController {
             this.seasonDropdown = document.querySelector(this.selectors.seasonDropdown);
             this.seasonDropdownContent = document.querySelector(this.selectors.seasonDropdownContent);
             this.loadButton = document.querySelector(this.selectors.loadButton);
-            
+
             this.seasonOptions = this.generateSeasonOptions();
             this.setupSeasonOnlyEventListeners();
-            
+
             Logger.debug(`UIController initialized in season-only mode with ${this.seasonOptions.length} season options`);
+        } else if (this.leadTimeOnlyMode) {
+            // Lead-time-only mode for Markov Chain
+            this.searchInput = document.querySelector(this.selectors.searchInput);
+            this.searchDropdown = document.querySelector(this.selectors.searchDropdown);
+            this.dropdownContent = document.querySelector(this.selectors.dropdownContent);
+            this.loadButton = document.querySelector(this.selectors.loadButton);
+
+            this.svgOptions = this.generateSvgOptions();
+            this.seasonOptions = this.generateSeasonOptions();
+            // Auto-select "All" season
+            this.selectedSeason = this.seasonOptions.find(opt => opt.value === 'all');
+            this.setupLeadTimeOnlyEventListeners();
+
+            Logger.debug(`UIController initialized in lead-time-only mode with ${this.svgOptions.length} SVG options`);
         } else {
-            // Original initialization for Markov Chain mode
+            // Original initialization for full mode (both lead time and season)
             this.searchInput = document.querySelector(this.selectors.searchInput);
             this.searchDropdown = document.querySelector(this.selectors.searchDropdown);
             this.dropdownContent = document.querySelector(this.selectors.dropdownContent);
@@ -52,11 +67,11 @@ export class UIController {
             this.seasonDropdown = document.querySelector(this.selectors.seasonDropdown);
             this.seasonDropdownContent = document.querySelector(this.selectors.seasonDropdownContent);
             this.loadButton = document.querySelector(this.selectors.loadButton);
-            
+
             this.svgOptions = this.generateSvgOptions();
             this.seasonOptions = this.generateSeasonOptions();
             this.setupEventListeners();
-            
+
             Logger.debug(`UIController initialized with ${this.svgOptions.length} SVG options and ${this.seasonOptions.length} season options`);
         }
     }
@@ -220,6 +235,36 @@ export class UIController {
         });
     }
 
+    setupLeadTimeOnlyEventListeners() {
+        if (!this.searchInput || !this.loadButton) {
+            Logger.error('Required UI elements not found for lead-time-only mode');
+            return;
+        }
+
+        // Lead time search input events
+        this.searchInput.addEventListener(EVENTS.INPUT, (e) => this.handleLeadTimeSearch(e.target.value));
+        this.searchInput.addEventListener(EVENTS.CLICK, (e) => {
+            e.stopPropagation();
+            this.showLeadTimeDropdown(this.svgOptions);
+        });
+        this.searchInput.addEventListener(EVENTS.KEYDOWN, (e) => this.handleLeadTimeKeyNavigation(e));
+
+        // Load button event - for lead-time-only mode
+        this.loadButton.addEventListener(EVENTS.CLICK, () => {
+            if (this.selectedSvg && this.onSvgSelected) {
+                const finalSelection = this.buildFinalSelection();
+                this.onSvgSelected(finalSelection);
+            }
+        });
+
+        // Global click to close dropdowns
+        document.addEventListener(EVENTS.CLICK, (e) => {
+            if (!e.target.closest(`.${CSS_CLASSES.SEARCH_CONTAINER}`)) {
+                this.hideLeadTimeDropdown();
+            }
+        });
+    }
+
     setOnSvgSelectedCallback(callback) {
         this.onSvgSelected = callback;
     }
@@ -379,6 +424,8 @@ export class UIController {
         if (this.loadButton) {
             if (this.seasonOnlyMode) {
                 this.loadButton.disabled = !this.selectedSeason;
+            } else if (this.leadTimeOnlyMode) {
+                this.loadButton.disabled = !this.selectedSvg;
             } else {
                 this.loadButton.disabled = !this.selectedSvg || !this.selectedSeason;
             }

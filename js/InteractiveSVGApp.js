@@ -19,7 +19,7 @@ export class InteractiveSVGApp {
         // Markov Chain section components
         this.svgLoader = new SVGLoader();
         this.svgParser = new SVGParser();
-        this.uiController = new UIController();
+        this.uiController = new UIController(null, false, true); // leadTimeOnlyMode = true
         this.interactionManager = new InteractionManager(this.svgLoader, this.svgParser);
         
         // DAG section components

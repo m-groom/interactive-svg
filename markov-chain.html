@@ -18,7 +18,7 @@
     <div class="svg-selector">
         <div class="info-panel">
             <h3>Interactive Markov Chain Visualisations</h3>
-            <p>Select an SVG file to load and interact with. Choose lead time and target season (currently only 'All' is available) from dropdowns, then click load.</p>
+            <p>Select an SVG file to load and interact with. Choose lead time from dropdown, then click load.</p>
             <p><strong>Desktop:</strong>  Hover over nodes and edges to see details, click nodes for more information.</p>
             <p><strong>Mobile:</strong> Tap nodes and edges to see details, long press nodes for more information.</p>
         </div>
@@ -34,18 +34,7 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="control-row">
-                <label for="season-search"><strong>Select Target Season:</strong></label>
-                <div class="search-container">
-                    <input type="text" id="season-search"
-                        placeholder="Select from available target seasons or type to search..." autocomplete="off">
-                    <div class="search-dropdown" id="season-dropdown">
-                        <div class="dropdown-content" id="season-dropdown-content"></div>
-                    </div>
-                </div>
-            </div>
-            
+
             <button id="load-svg-btn" disabled>Load</button>
         </div>
 
