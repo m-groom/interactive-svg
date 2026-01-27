@@ -70,7 +70,6 @@ export class InteractionManager extends BaseInteractionManager {
                 node.addEventListener(EVENTS.MOUSELEAVE, (e) => {
                     e.stopPropagation();
                     this.hideTooltip();
-                    this.unhighlightElement(node);
                 });
                 
                 node.addEventListener(EVENTS.CLICK, async (e) => {
@@ -193,7 +192,8 @@ export class InteractionManager extends BaseInteractionManager {
         `;
         
         this.showTooltip(event, content);
-        this.highlightElement(nodeElement);
+        // Note: Node highlighting removed to preserve date-based brightness highlighting
+        // Edge highlighting is still applied separately
     }
 
     getTransitionProbabilities(sourceNodeId) {
