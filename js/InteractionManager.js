@@ -4,10 +4,11 @@ import { Utils } from './Utils.js';
 import { BaseInteractionManager } from './BaseInteractionManager.js';
 
 export class InteractionManager extends BaseInteractionManager {
-    constructor(svgLoader, svgParser) {
+    constructor(svgLoader, svgParser, appInstance = null) {
         super();
         this.svgLoader = svgLoader;
         this.svgParser = svgParser;
+        this.app = appInstance; // Reference to InteractiveSVGApp for accessing affiliation data
         
         // Specific properties for this interaction manager
         this.edgeTooltipTimer = null;
@@ -137,6 +138,28 @@ export class InteractionManager extends BaseInteractionManager {
             `;
         }
 
+        // Affiliation probability for selected date
+        let affiliationProbContent = '';
+        if (this.app?.affiliationData && this.app?.dateSlider && !this.app.dateSlider.disabled) {
+            const dateIndex = parseInt(this.app.dateSlider.value, 10);
+            const nodeIndex = nodeData.id - 1; // Convert 1-based node ID to 0-based index
+            const probVector = this.app.affiliationData.affiliations[dateIndex];
+            const currentDate = this.app.affiliationData.dates[dateIndex];
+            const formattedDate = this.formatDateToMonthYear(currentDate);
+            
+            let probDisplay = 'not defined';
+            if (probVector && nodeIndex >= 0 && nodeIndex < probVector.length) {
+                const affiliationProb = probVector[nodeIndex];
+                if (typeof affiliationProb === 'number' && !isNaN(affiliationProb)) {
+                    probDisplay = affiliationProb.toFixed(3);
+                }
+            }
+            
+            affiliationProbContent = `
+                <p style="text-align: left;"><strong>Affiliation Probability (${formattedDate}):</strong><br>${probDisplay}</p>
+            `;
+        }
+
         let transitionProbContent = '';
         if (nodeData.id && this.svgParser.jsonParser) {
             const transitionProbs = this.getTransitionProbabilities(nodeData.id);
@@ -165,6 +188,7 @@ export class InteractionManager extends BaseInteractionManager {
         const content = `
             <h4 style="margin-bottom: 1rem;">${Utils.escapeHTML(displayName)}</h4>
             ${classProbContent}
+            ${affiliationProbContent}
             ${transitionProbContent}
         `;
         
@@ -737,7 +761,7 @@ export class InteractionManager extends BaseInteractionManager {
             const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('en-US', { 
                 year: 'numeric', 
-                month: 'long' 
+                month: 'short' 
             });
         } catch (error) {
             Logger.warn(`Failed to format date: ${dateString}`, error);

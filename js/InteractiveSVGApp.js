@@ -20,7 +20,7 @@ export class InteractiveSVGApp {
         this.svgLoader = new SVGLoader();
         this.svgParser = new SVGParser();
         this.uiController = new UIController(null, false, true); // leadTimeOnlyMode = true
-        this.interactionManager = new InteractionManager(this.svgLoader, this.svgParser);
+        this.interactionManager = new InteractionManager(this.svgLoader, this.svgParser, this);
         
         // DAG section components
         this.dagDataLoader = new DAGDataLoader();
