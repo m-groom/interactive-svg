@@ -18,7 +18,7 @@
     <div class="svg-selector">
         <div class="info-panel">
             <h3>Interactive Markov Chain Visualisations</h3>
-            <p>Select an SVG file to load and interact with. Choose lead time from dropdown, then click load.</p>
+            <p>Select an SVG file to load and interact with. Choose lead time from the dropdown, then click load. Use the date slider to highlight nodes by their affiliation probabilities for a given target date.</p>
             <p><strong>Desktop:</strong>  Hover over nodes and edges to see details, click nodes for more information.</p>
             <p><strong>Mobile:</strong> Tap nodes and edges to see details, long press nodes for more information.</p>
         </div>
@@ -36,6 +36,16 @@
             </div>
 
             <button id="load-svg-btn" disabled>Load</button>
+
+            <div class="control-row">
+                <label for="date-slider"><strong>Select Target Date:</strong></label>
+                <div class="slider-container">
+                    <input type="range" id="date-slider" min="0" max="0" value="0" disabled>
+                    <button class="slider-step-btn" id="slider-prev-btn" disabled>&#9664;</button>
+                    <span id="slider-date-label">&mdash;</span>
+                    <button class="slider-step-btn" id="slider-next-btn" disabled>&#9654;</button>
+                </div>
+            </div>
         </div>
 
         <div class="content-container">

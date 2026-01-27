@@ -1,4 +1,4 @@
-import { SELECTORS, DEBUG } from './constants.js';
+import { CONFIG, SELECTORS, DEBUG } from './constants.js';
 import { Logger } from './Logger.js';
 import { SVGLoader } from './SVGLoader.js';
 import { SVGParser } from './SVGParser.js';
@@ -34,6 +34,14 @@ export class InteractiveSVGApp {
         this.caseStudyDataLoader = new BaseDataLoader();
         
         this.isInitialized = false;
+
+        // Affiliation matrix state (Markov Chain date slider)
+        this.affiliationData = null;
+        this.dateSlider = null;
+        this.dateSliderLabel = null;
+        this.dateSliderPrev = null;
+        this.dateSliderNext = null;
+        this.currentSvgElement = null;
     }
 
     async initialize() {
@@ -102,27 +110,262 @@ export class InteractiveSVGApp {
 
         try {
             Logger.debug(`Loading SVG: ${filename}`);
-            
+
+            // Clear previous affiliation highlighting
+            this.clearDateHighlighting();
+
             // Load SVG and JSON data
             const { svgElement, jsonParser } = await this.svgLoader.loadSVGWithData(filename);
-            
+
             Logger.info('Successfully loaded SVG and JSON data');
 
             // Parse SVG and setup interactivity with JSON data
             const parseResult = this.svgParser.parseAndSetupInteractivity(svgElement, jsonParser);
-            
+
             Logger.info(`Parsed ${parseResult.nodeCount} nodes and ${parseResult.edgeCount} edges`);
 
             // Setup interactive events
             this.interactionManager.setupSVGInteractions(svgElement);
 
+            // Store reference to current SVG element
+            this.currentSvgElement = svgElement;
+
             Logger.info('SVG loading and setup completed successfully');
+
+            // Load affiliation matrix for this lead time
+            const leadTime = this.svgLoader.getCurrentLeadTime();
+            if (leadTime) {
+                await this.loadAffiliationMatrix(leadTime);
+            }
 
         } catch (error) {
             Logger.error('Failed to load SVG:', error);
             this.showError('Failed to load visualization: ' + error.message);
         }
     }
+
+    // =========================================================================
+    // DATE SLIDER & AFFILIATION MATRIX METHODS
+    // =========================================================================
+
+    /**
+     * Set up the date slider event listener.
+     */
+    setupDateSlider() {
+        if (!this.dateSlider) {
+            Logger.warn('Date slider element not found');
+            return;
+        }
+
+        this.dateSlider.addEventListener('input', () => {
+            const dateIndex = parseInt(this.dateSlider.value, 10);
+            this.onDateSliderChange(dateIndex);
+        });
+
+        if (this.dateSliderPrev) {
+            this.dateSliderPrev.addEventListener('click', () => this.stepDateSlider(-1));
+        }
+        if (this.dateSliderNext) {
+            this.dateSliderNext.addEventListener('click', () => this.stepDateSlider(1));
+        }
+
+        Logger.debug('Date slider event listeners set up');
+    }
+
+    /**
+     * Load the affiliation matrix JSON for a given lead time.
+     * On success, enables the slider and applies the first date's highlighting.
+     * On failure (e.g. file not found), disables the slider gracefully.
+     * @param {number} leadTime - Lead time in months
+     */
+    async loadAffiliationMatrix(leadTime) {
+        const filename = CONFIG.AFFILIATION_FILENAME_TEMPLATE.replace('{leadTime}', leadTime);
+        Logger.debug(`Loading affiliation matrix: ${filename}`);
+
+        try {
+            const response = await fetch(filename);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Validate structure
+            if (!data.dates || !Array.isArray(data.dates) ||
+                !data.affiliations || !Array.isArray(data.affiliations)) {
+                throw new Error('Invalid affiliation matrix structure');
+            }
+
+            if (data.dates.length !== data.affiliations.length) {
+                throw new Error(`Date count (${data.dates.length}) does not match affiliation count (${data.affiliations.length})`);
+            }
+
+            this.affiliationData = data;
+
+            // Enable and configure the slider
+            if (this.dateSlider) {
+                this.dateSlider.min = 0;
+                this.dateSlider.max = data.dates.length - 1;
+                this.dateSlider.value = 0;
+                this.dateSlider.disabled = false;
+            }
+
+            Logger.info(`Affiliation matrix loaded: ${data.n_timesteps} dates, ${data.n_clusters} clusters`);
+
+            // Apply initial highlighting for the first date
+            this.onDateSliderChange(0);
+
+        } catch (error) {
+            Logger.warn(`Could not load affiliation matrix for lead time ${leadTime}: ${error.message}`);
+            this.affiliationData = null;
+            this.disableDateSlider();
+        }
+    }
+
+    /**
+     * Step the date slider forward or backward by one month.
+     * @param {number} direction - +1 for forward, -1 for backward
+     */
+    stepDateSlider(direction) {
+        if (!this.dateSlider || this.dateSlider.disabled) return;
+
+        const current = parseInt(this.dateSlider.value, 10);
+        const next = current + direction;
+        const min = parseInt(this.dateSlider.min, 10);
+        const max = parseInt(this.dateSlider.max, 10);
+
+        if (next < min || next > max) return;
+
+        this.dateSlider.value = next;
+        this.onDateSliderChange(next);
+    }
+
+    /**
+     * Handle slider value change — update label, step button states,
+     * and apply highlighting.
+     * @param {number} dateIndex - Index into the affiliations/dates arrays
+     */
+    onDateSliderChange(dateIndex) {
+        if (!this.affiliationData) return;
+
+        const dates = this.affiliationData.dates;
+        const affiliations = this.affiliationData.affiliations;
+
+        if (dateIndex < 0 || dateIndex >= dates.length) {
+            Logger.warn(`Date index ${dateIndex} out of range`);
+            return;
+        }
+
+        // Update label with formatted date
+        const dateString = dates[dateIndex];
+        if (this.dateSliderLabel) {
+            this.dateSliderLabel.textContent = this.formatSliderDate(dateString);
+        }
+
+        // Update step button disabled states
+        this.updateStepButtons(dateIndex, dates.length);
+
+        // Get the probability vector for this date
+        const probVector = affiliations[dateIndex];
+        if (!probVector || !Array.isArray(probVector)) {
+            // No data for this date — clear highlighting
+            this.clearDateHighlighting();
+            return;
+        }
+
+        this.applyDateHighlighting(probVector);
+    }
+
+    /**
+     * Enable/disable the prev/next step buttons based on current position.
+     * @param {number} index - Current date index
+     * @param {number} total - Total number of dates
+     */
+    updateStepButtons(index, total) {
+        if (this.dateSliderPrev) {
+            this.dateSliderPrev.disabled = (index <= 0);
+        }
+        if (this.dateSliderNext) {
+            this.dateSliderNext.disabled = (index >= total - 1);
+        }
+    }
+
+    /**
+     * Apply brightness-based highlighting to SVG nodes proportional to
+     * their affiliation probabilities.
+     * @param {number[]} probVector - Probability vector (one entry per cluster)
+     */
+    applyDateHighlighting(probVector) {
+        if (!this.currentSvgElement) return;
+
+        const nodes = this.currentSvgElement.querySelectorAll(SELECTORS.SVG_NODES);
+        const scale = CONFIG.BRIGHTNESS_SCALE;
+
+        nodes.forEach((node, index) => {
+            const probability = (index < probVector.length) ? probVector[index] : 0;
+            const brightness = 1.0 + scale * probability;
+            node.style.filter = `brightness(${brightness.toFixed(3)})`;
+        });
+
+        Logger.debug(`Applied date highlighting: ${probVector.length} nodes, max p=${Math.max(...probVector).toFixed(3)}`);
+    }
+
+    /**
+     * Remove all brightness modifications from SVG nodes.
+     */
+    clearDateHighlighting() {
+        if (!this.currentSvgElement) return;
+
+        const nodes = this.currentSvgElement.querySelectorAll(SELECTORS.SVG_NODES);
+        nodes.forEach(node => {
+            node.style.filter = '';
+        });
+
+        Logger.debug('Cleared date highlighting');
+    }
+
+    /**
+     * Disable the date slider and reset its label.
+     */
+    disableDateSlider() {
+        if (this.dateSlider) {
+            this.dateSlider.disabled = true;
+            this.dateSlider.value = 0;
+            this.dateSlider.min = 0;
+            this.dateSlider.max = 0;
+        }
+        if (this.dateSliderLabel) {
+            this.dateSliderLabel.textContent = '\u2014'; // em dash
+        }
+        if (this.dateSliderPrev) {
+            this.dateSliderPrev.disabled = true;
+        }
+        if (this.dateSliderNext) {
+            this.dateSliderNext.disabled = true;
+        }
+    }
+
+    /**
+     * Format a date string (e.g. "2002-01-01") for display on the slider label.
+     * @param {string} dateString - ISO date string
+     * @returns {string} - Formatted date (e.g. "Jan 2002")
+     */
+    formatSliderDate(dateString) {
+        if (!dateString) return '\u2014';
+        try {
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('en-GB', {
+                year: 'numeric',
+                month: 'short'
+            });
+        } catch {
+            return dateString;
+        }
+    }
+
+    // =========================================================================
+    // DAG SECTION METHODS
+    // =========================================================================
 
     async loadDAGSVG(filename) {
         if (!this.isInitialized) {
@@ -570,7 +813,7 @@ export class InteractiveSVGApp {
     async initializeMarkovChainSection() {
         try {
             Logger.info('Initializing Markov Chain section only...');
-            
+
             // Initialize Markov Chain section
             this.svgLoader.initialize(
                 document.querySelector(SELECTORS.LOADING),
@@ -580,6 +823,13 @@ export class InteractiveSVGApp {
 
             this.uiController.initialize();
             this.interactionManager.initialize();
+
+            // Initialize date slider elements
+            this.dateSlider = document.querySelector(SELECTORS.DATE_SLIDER);
+            this.dateSliderLabel = document.querySelector(SELECTORS.DATE_SLIDER_LABEL);
+            this.dateSliderPrev = document.querySelector(SELECTORS.DATE_SLIDER_PREV);
+            this.dateSliderNext = document.querySelector(SELECTORS.DATE_SLIDER_NEXT);
+            this.setupDateSlider();
 
             // Set up Markov Chain callbacks
             this.uiController.setOnSvgSelectedCallback((finalSelection) => {

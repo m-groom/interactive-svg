@@ -49,7 +49,11 @@ export const CONFIG = {
     
     // Lead time range
     MIN_LEAD_TIME: 1,
-    MAX_LEAD_TIME: 24
+    MAX_LEAD_TIME: 24,
+
+    // Affiliation matrix settings
+    AFFILIATION_FILENAME_TEMPLATE: 'json_files/affiliation_matrix_{leadTime}months.json',
+    BRIGHTNESS_SCALE: 1.5 // Scales probability to brightness increase (brightness = 1.0 + scale * p)
 };
 
 export const SELECTORS = {
@@ -69,6 +73,10 @@ export const SELECTORS = {
     SEASON_DROPDOWN: '#season-dropdown',
     SEASON_DROPDOWN_CONTENT: '#season-dropdown-content',
     LOAD_BUTTON: '#load-svg-btn',
+    DATE_SLIDER: '#date-slider',
+    DATE_SLIDER_LABEL: '#slider-date-label',
+    DATE_SLIDER_PREV: '#slider-prev-btn',
+    DATE_SLIDER_NEXT: '#slider-next-btn',
     
     // Search interface - DAG section
     DAG_SVG_CONTAINER: '#dag-svg-container',
