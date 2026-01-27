@@ -13,6 +13,10 @@ export class InteractionManager extends BaseInteractionManager {
         // Specific properties for this interaction manager
         this.edgeTooltipTimer = null;
         this.edgeTooltipDelay = 3000; // 3 seconds auto-dismiss for edge tooltips on mobile
+        
+        // Image detrend toggle state
+        this.useDetrendedImages = true; // Default to detrended images
+        this.currentImageDate = null; // Track currently displayed image date for toggle reload
     }
 
     initialize() {
@@ -422,8 +426,19 @@ export class InteractionManager extends BaseInteractionManager {
             contentLayout = '<div style="width:100%; text-align:center;">(No content)</div>';
         }
 
+        const detrendChecked = this.useDetrendedImages ? 'checked' : '';
         const modalContentHtml = `
-            <h2 style="margin-bottom: 1rem; text-align: center;">${Utils.escapeHTML(displayName)}</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 130px;">
+                    <label class="detrend-switch" style="position: relative; display: inline-block; width: 50px; height: 26px; margin: 0;">
+                        <input type="checkbox" id="detrend-toggle-checkbox" ${detrendChecked} style="opacity: 0; width: 0; height: 0;">
+                        <span class="detrend-slider"></span>
+                    </label>
+                    <span style="font-size: 0.85rem; white-space: nowrap;">Detrended</span>
+                </div>
+                <h2 style="flex: 1; text-align: center; margin: 0;">${Utils.escapeHTML(displayName)}</h2>
+                <div style="width: 130px;"></div>
+            </div>
             ${contentLayout}
         `;
 
@@ -466,6 +481,22 @@ export class InteractionManager extends BaseInteractionManager {
         if (closeImageBtn) {
             closeImageBtn.addEventListener('click', () => {
                 this.closeActiveImage();
+            });
+        }
+
+        // Setup detrend toggle switch
+        const detrendToggleCheckbox = this.modalBody.querySelector('#detrend-toggle-checkbox');
+        if (detrendToggleCheckbox) {
+            detrendToggleCheckbox.addEventListener('change', () => {
+                // Update state based on checkbox
+                this.useDetrendedImages = detrendToggleCheckbox.checked;
+                
+                // If an image is currently displayed, reload it with the new setting
+                if (this.currentImageDate) {
+                    this.loadDateImage(this.currentImageDate);
+                }
+                
+                Logger.debug(`[Detrend Toggle] Switched to ${this.useDetrendedImages ? 'detrended' : 'non-detrended'} images`);
             });
         }
     }
@@ -538,7 +569,12 @@ export class InteractionManager extends BaseInteractionManager {
         
         if (!imageContainer || !image) return;
 
-        const imagePath = `png_files/${dateString}.png`;
+        // Track current image date for toggle reload
+        this.currentImageDate = dateString;
+        
+        // Use detrend state to determine image path
+        const suffix = this.useDetrendedImages ? '-detrended' : '';
+        const imagePath = `png_files/${dateString}${suffix}.png`;
         
         // Preserve video state
         const videoWasPaused = video ? video.paused : true;
@@ -722,6 +758,9 @@ export class InteractionManager extends BaseInteractionManager {
         if (imageContainer) {
             imageContainer.style.display = 'none';
             
+            // Clear current image date tracking
+            this.currentImageDate = null;
+            
             // Update modal width after closing image
             setTimeout(() => {
                 this.updateModalWidth();
@@ -777,9 +816,10 @@ export class InteractionManager extends BaseInteractionManager {
         const missingDates = [];
         let availableCount = 0;
 
-        // Check each date's PNG file availability
+        // Check each date's PNG file availability (using current detrend state)
+        const suffix = this.useDetrendedImages ? '-detrended' : '';
         for (const dateString of dates) {
-            const pngPath = `png_files/${dateString}.png`;
+            const pngPath = `png_files/${dateString}${suffix}.png`;
             try {
                 const response = await fetch(pngPath, { method: 'HEAD' });
                 if (response.ok) {
