@@ -27,7 +27,7 @@ export class InteractiveSVGApp {
         this.dagSvgLoader = new SVGLoader();
         this.dagParser = new DAGParser();
         this.dagUiController = new UIController();
-        this.dagInteractionManager = new DAGInteractionManager(this.dagSvgLoader, this.dagParser);
+        this.dagInteractionManager = new DAGInteractionManager(this.dagSvgLoader, this.dagParser, this);
         
         // Case Study section components
         this.caseStudyController = new CaseStudyController();
@@ -42,6 +42,14 @@ export class InteractiveSVGApp {
         this.dateSliderPrev = null;
         this.dateSliderNext = null;
         this.currentSvgElement = null;
+
+        // DAG affiliation matrix state (DAG date slider)
+        this.dagAffiliationData = {}; // Map: level -> {dates, affiliations}
+        this.dagDateSlider = null;
+        this.dagDateSliderLabel = null;
+        this.dagDateSliderPrev = null;
+        this.dagDateSliderNext = null;
+        this.currentDagSvgElement = null;
     }
 
     async initialize() {
@@ -364,6 +372,260 @@ export class InteractiveSVGApp {
     }
 
     // =========================================================================
+    // DAG DATE SLIDER & AFFILIATION MATRIX METHODS
+    // =========================================================================
+
+    /**
+     * Set up the DAG date slider event listener.
+     */
+    setupDAGDateSlider() {
+        if (!this.dagDateSlider) {
+            Logger.warn('DAG date slider element not found');
+            return;
+        }
+
+        this.dagDateSlider.addEventListener('input', () => {
+            const dateIndex = parseInt(this.dagDateSlider.value, 10);
+            this.onDAGDateSliderChange(dateIndex);
+        });
+
+        if (this.dagDateSliderPrev) {
+            this.dagDateSliderPrev.addEventListener('click', () => this.stepDAGDateSlider(-1));
+        }
+        if (this.dagDateSliderNext) {
+            this.dagDateSliderNext.addEventListener('click', () => this.stepDAGDateSlider(1));
+        }
+
+        Logger.debug('DAG date slider event listeners set up');
+    }
+
+    /**
+     * Load all affiliation matrices for DAG (levels 0-24).
+     * Called after DAG SVG is successfully loaded.
+     */
+    async loadAllDAGAffiliationMatrices() {
+        Logger.debug('Loading all DAG affiliation matrices (levels 0-24)...');
+        
+        this.dagAffiliationData = {};
+        const loadPromises = [];
+        
+        // Load matrices for levels 0-24 in parallel
+        for (let level = 0; level <= 24; level++) {
+            loadPromises.push(this.loadDAGAffiliationMatrix(level));
+        }
+        
+        try {
+            await Promise.all(loadPromises);
+            
+            // Check if we have data for at least level 0 to configure the slider
+            const level0Data = this.dagAffiliationData[0];
+            if (level0Data && level0Data.dates && level0Data.dates.length > 0) {
+                // Enable and configure the slider using level 0 dates
+                if (this.dagDateSlider) {
+                    this.dagDateSlider.min = 0;
+                    this.dagDateSlider.max = level0Data.dates.length - 1;
+                    this.dagDateSlider.value = 0;
+                    this.dagDateSlider.disabled = false;
+                }
+                
+                const loadedLevels = Object.keys(this.dagAffiliationData).length;
+                Logger.info(`DAG affiliation matrices loaded: ${loadedLevels}/25 levels, ${level0Data.dates.length} dates`);
+                
+                // Apply initial highlighting for the first date
+                this.onDAGDateSliderChange(0);
+            } else {
+                Logger.warn('No valid affiliation data found for level 0');
+                this.disableDAGDateSlider();
+            }
+        } catch (error) {
+            Logger.error('Failed to load DAG affiliation matrices:', error);
+            this.disableDAGDateSlider();
+        }
+    }
+
+    /**
+     * Load a single affiliation matrix for a DAG level.
+     * @param {number} level - The level (0-24)
+     */
+    async loadDAGAffiliationMatrix(level) {
+        const filename = CONFIG.AFFILIATION_FILENAME_TEMPLATE.replace('{leadTime}', level);
+        
+        try {
+            const response = await fetch(filename);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Validate structure
+            if (!data.dates || !Array.isArray(data.dates) ||
+                !data.affiliations || !Array.isArray(data.affiliations)) {
+                throw new Error('Invalid affiliation matrix structure');
+            }
+
+            if (data.dates.length !== data.affiliations.length) {
+                throw new Error(`Date count (${data.dates.length}) does not match affiliation count (${data.affiliations.length})`);
+            }
+
+            this.dagAffiliationData[level] = data;
+            Logger.debug(`Loaded affiliation matrix for level ${level}: ${data.n_clusters} clusters`);
+
+        } catch (error) {
+            Logger.warn(`Could not load affiliation matrix for level ${level}: ${error.message}`);
+            // Don't throw - we want to continue loading other levels
+        }
+    }
+
+    /**
+     * Step the DAG date slider forward or backward by one month.
+     * @param {number} direction - +1 for forward, -1 for backward
+     */
+    stepDAGDateSlider(direction) {
+        if (!this.dagDateSlider || this.dagDateSlider.disabled) return;
+
+        const current = parseInt(this.dagDateSlider.value, 10);
+        const next = current + direction;
+        const min = parseInt(this.dagDateSlider.min, 10);
+        const max = parseInt(this.dagDateSlider.max, 10);
+
+        if (next < min || next > max) return;
+
+        this.dagDateSlider.value = next;
+        this.onDAGDateSliderChange(next);
+    }
+
+    /**
+     * Handle DAG slider value change — update label, step button states,
+     * and apply highlighting.
+     * @param {number} dateIndex - Index into the affiliations/dates arrays
+     */
+    onDAGDateSliderChange(dateIndex) {
+        // Use level 0 data for dates (all levels should have same dates)
+        const level0Data = this.dagAffiliationData[0];
+        if (!level0Data) return;
+
+        const dates = level0Data.dates;
+
+        if (dateIndex < 0 || dateIndex >= dates.length) {
+            Logger.warn(`DAG date index ${dateIndex} out of range`);
+            return;
+        }
+
+        // Update label with formatted date
+        const dateString = dates[dateIndex];
+        if (this.dagDateSliderLabel) {
+            this.dagDateSliderLabel.textContent = this.formatSliderDate(dateString);
+        }
+
+        // Update step button disabled states
+        this.updateDAGStepButtons(dateIndex, dates.length);
+
+        // Apply highlighting to all DAG nodes
+        this.applyDAGDateHighlighting(dateIndex);
+    }
+
+    /**
+     * Enable/disable the DAG prev/next step buttons based on current position.
+     * @param {number} index - Current date index
+     * @param {number} total - Total number of dates
+     */
+    updateDAGStepButtons(index, total) {
+        if (this.dagDateSliderPrev) {
+            this.dagDateSliderPrev.disabled = (index <= 0);
+        }
+        if (this.dagDateSliderNext) {
+            this.dagDateSliderNext.disabled = (index >= total - 1);
+        }
+    }
+
+    /**
+     * Apply brightness-based highlighting to DAG SVG nodes proportional to
+     * their affiliation probabilities. Each node uses its level's affiliation matrix.
+     * @param {number} dateIndex - Index into the affiliations arrays
+     */
+    applyDAGDateHighlighting(dateIndex) {
+        if (!this.currentDagSvgElement) return;
+
+        // Get all DAG nodes using the DAG-specific selector
+        const nodeSelector = 'path[fill-rule="nonzero"][stroke-linejoin="miter"]';
+        const nodes = this.currentDagSvgElement.querySelectorAll(nodeSelector);
+        const scale = CONFIG.BRIGHTNESS_SCALE;
+
+        nodes.forEach((node, svgIndex) => {
+            // Get the global ID for this SVG index from DAGInteractionManager's mapping
+            const globalId = this.dagInteractionManager.svgIndexToGlobalId[svgIndex];
+            if (globalId === undefined) {
+                return;
+            }
+
+            // Get node data to find level and localIdx
+            const nodeData = this.dagParser.getNodeData(globalId);
+            if (!nodeData) {
+                return;
+            }
+
+            const level = nodeData.level;
+            const localIdx = nodeData.localIdx;
+
+            // Get the affiliation data for this level
+            const levelData = this.dagAffiliationData[level];
+            if (!levelData || !levelData.affiliations || !levelData.affiliations[dateIndex]) {
+                node.style.filter = '';
+                return;
+            }
+
+            // Get the probability for this node (localIdx is 1-based, convert to 0-based array index)
+            const probability = levelData.affiliations[dateIndex][localIdx - 1];
+            if (typeof probability !== 'number' || isNaN(probability)) {
+                node.style.filter = '';
+                return;
+            }
+
+            const brightness = 1.0 + scale * probability;
+            node.style.filter = `brightness(${brightness.toFixed(3)})`;
+        });
+
+        Logger.debug(`Applied DAG date highlighting for date index ${dateIndex}`);
+    }
+
+    /**
+     * Remove all brightness modifications from DAG SVG nodes.
+     */
+    clearDAGDateHighlighting() {
+        if (!this.currentDagSvgElement) return;
+
+        const nodeSelector = 'path[fill-rule="nonzero"][stroke-linejoin="miter"]';
+        const nodes = this.currentDagSvgElement.querySelectorAll(nodeSelector);
+        nodes.forEach(node => {
+            node.style.filter = '';
+        });
+
+        Logger.debug('Cleared DAG date highlighting');
+    }
+
+    /**
+     * Disable the DAG date slider and reset its label.
+     */
+    disableDAGDateSlider() {
+        if (this.dagDateSlider) {
+            this.dagDateSlider.disabled = true;
+            this.dagDateSlider.value = 0;
+            this.dagDateSlider.min = 0;
+            this.dagDateSlider.max = 0;
+        }
+        if (this.dagDateSliderLabel) {
+            this.dagDateSliderLabel.textContent = '\u2014'; // em dash
+        }
+        if (this.dagDateSliderPrev) {
+            this.dagDateSliderPrev.disabled = true;
+        }
+        if (this.dagDateSliderNext) {
+            this.dagDateSliderNext.disabled = true;
+        }
+    }
+
+    // =========================================================================
     // DAG SECTION METHODS
     // =========================================================================
 
@@ -411,6 +673,12 @@ export class InteractiveSVGApp {
             dagContainer.innerHTML = '';
             dagContainer.appendChild(svgElement);
             
+            // Store reference to current DAG SVG element for highlighting
+            this.currentDagSvgElement = svgElement;
+            
+            // Clear previous date highlighting
+            this.clearDAGDateHighlighting();
+            
             // Parse DAG data
             Logger.debug('Parsing DAG data...');
             this.dagParser.parseDAGData(dagData, kMaxData);
@@ -427,6 +695,9 @@ export class InteractiveSVGApp {
             dagContainer.style.display = 'block';
             
             Logger.info('DAG visualization loaded successfully');
+            
+            // Load affiliation matrices for all levels (0-24)
+            await this.loadAllDAGAffiliationMatrices();
             
             // Log validation results
             if (validationResults.mp4Validation) {
@@ -869,6 +1140,13 @@ export class InteractiveSVGApp {
             this.dagUiController = new UIController(dagSelectors, true); // true for season-only mode
             this.dagUiController.initialize();
             this.dagInteractionManager.initialize();
+
+            // Initialize DAG date slider elements
+            this.dagDateSlider = document.querySelector(SELECTORS.DAG_DATE_SLIDER);
+            this.dagDateSliderLabel = document.querySelector(SELECTORS.DAG_DATE_SLIDER_LABEL);
+            this.dagDateSliderPrev = document.querySelector(SELECTORS.DAG_DATE_SLIDER_PREV);
+            this.dagDateSliderNext = document.querySelector(SELECTORS.DAG_DATE_SLIDER_NEXT);
+            this.setupDAGDateSlider();
 
             // Set up DAG callbacks
             this.dagUiController.setOnSvgSelectedCallback((finalSelection) => {

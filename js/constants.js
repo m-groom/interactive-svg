@@ -86,6 +86,10 @@ export const SELECTORS = {
     DAG_SEASON_DROPDOWN: '#dag-season-dropdown',
     DAG_SEASON_DROPDOWN_CONTENT: '#dag-season-dropdown-content',
     DAG_LOAD_BUTTON: '#dag-load-svg-btn',
+    DAG_DATE_SLIDER: '#dag-date-slider',
+    DAG_DATE_SLIDER_LABEL: '#dag-slider-date-label',
+    DAG_DATE_SLIDER_PREV: '#dag-slider-prev-btn',
+    DAG_DATE_SLIDER_NEXT: '#dag-slider-next-btn',
     
     // Search interface - Case Study section
     CASE_STUDY_YEAR_INPUT: '#target-year',

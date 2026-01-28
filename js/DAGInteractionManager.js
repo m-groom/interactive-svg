@@ -8,10 +8,11 @@ import { Logger } from './Logger.js';
 import { Utils } from './Utils.js';
 
 export class DAGInteractionManager extends BaseInteractionManager {
-    constructor(svgLoader, dagParser) {
+    constructor(svgLoader, dagParser, appInstance = null) {
         super();
         this.svgLoader = svgLoader;
         this.dagParser = dagParser;
+        this.app = appInstance; // Reference to InteractiveSVGApp for accessing DAG affiliation data
         this.indexUtils = null;
         this.isDagMode = true;
         
@@ -487,6 +488,35 @@ export class DAGInteractionManager extends BaseInteractionManager {
         const nodeData = this.dagParser.getNodeData(globalId);
         if (!nodeData) return;
 
+        // Build affiliation probability content (works for all levels)
+        let affiliationProbContent = '';
+        if (this.app?.dagAffiliationData && this.app?.dagDateSlider && !this.app.dagDateSlider.disabled) {
+            const dateIndex = parseInt(this.app.dagDateSlider.value, 10);
+            const level = nodeData.level;
+            const localIdx = nodeData.localIdx;
+            const levelData = this.app.dagAffiliationData[level];
+            
+            if (levelData?.dates?.[dateIndex]) {
+                const currentDate = levelData.dates[dateIndex];
+                const formattedDate = this.formatDateToMonthYear(currentDate);
+                
+                let probDisplay = 'not defined';
+                // localIdx is 1-based, convert to 0-based array index
+                const arrayIndex = localIdx - 1;
+                if (levelData.affiliations?.[dateIndex] && 
+                    arrayIndex >= 0 && arrayIndex < levelData.affiliations[dateIndex].length) {
+                    const affiliationProb = levelData.affiliations[dateIndex][arrayIndex];
+                    if (typeof affiliationProb === 'number' && !isNaN(affiliationProb)) {
+                        probDisplay = affiliationProb.toFixed(3);
+                    }
+                }
+                
+                affiliationProbContent = `
+                    <p style="text-align: left;"><strong>Affiliation Probability (${formattedDate}):</strong><br>${probDisplay}</p>
+                `;
+            }
+        }
+
         let content = '';
 
         if (nodeData.level === 0) {
@@ -497,6 +527,7 @@ export class DAGInteractionManager extends BaseInteractionManager {
             content = `
                 <h4 style="margin-bottom: 1rem;">${Utils.escapeHTML(nodeData.clusterName)}</h4>
                 <p style="text-align: left;"><strong>Climatological Probability:</strong> ${probNumber}</p>
+                ${affiliationProbContent}
             `;
         } else {
             let classProbContent = '';
@@ -555,6 +586,7 @@ export class DAGInteractionManager extends BaseInteractionManager {
             content = `
                 <h4 style="margin-bottom: 1rem;">${Utils.escapeHTML(displayName)}</h4>
                 ${classProbContent}
+                ${affiliationProbContent}
                 ${transitionProbContent}
             `;
         }
@@ -563,6 +595,25 @@ export class DAGInteractionManager extends BaseInteractionManager {
         this.showTooltip(event, content);
         
         this.highlightElement(nodeElement);
+    }
+    
+    /**
+     * Format a date string for display in tooltip
+     * @param {string} dateString - ISO date string
+     * @returns {string} - Formatted date (e.g. "Jan 2002")
+     */
+    formatDateToMonthYear(dateString) {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short' 
+            });
+        } catch (error) {
+            Logger.warn(`Failed to format date: ${dateString}`, error);
+            return dateString;
+        }
     }
 
 

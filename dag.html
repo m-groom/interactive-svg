@@ -36,6 +36,16 @@
             </div>
             
             <button id="dag-load-svg-btn" disabled>Load</button>
+
+            <div class="control-row">
+                <label for="dag-date-slider"><strong>Select Target Date:</strong></label>
+                <div class="slider-container">
+                    <input type="range" id="dag-date-slider" min="0" max="0" value="0" disabled>
+                    <button class="slider-step-btn" id="dag-slider-prev-btn" disabled>&#9664;</button>
+                    <span id="dag-slider-date-label">&mdash;</span>
+                    <button class="slider-step-btn" id="dag-slider-next-btn" disabled>&#9654;</button>
+                </div>
+            </div>
         </div>
 
         <div class="content-container">
