@@ -94,6 +94,18 @@ export const SELECTORS = {
     DAG_DATE_SLIDER_LABEL: '#dag-slider-date-label',
     DAG_DATE_SLIDER_PREV: '#dag-slider-prev-btn',
     DAG_DATE_SLIDER_NEXT: '#dag-slider-next-btn',
+    DAG_PROB_ROW: '#dag-prob-row',
+    DAG_PROB_NODE_I: '#dag-prob-node-i',
+    DAG_PROB_LEVEL_N: '#dag-prob-level-n',
+    DAG_PROB_NODE_J: '#dag-prob-node-j',
+    DAG_PROB_LEVEL_M: '#dag-prob-level-m',
+    DAG_PROB_VALUE: '#dag-prob-value',
+    DAG_PATH_ROW: '#dag-path-row',
+    DAG_PATH_NODE_I: '#dag-path-node-i',
+    DAG_PATH_LEVEL_N: '#dag-path-level-n',
+    DAG_PATH_NODE_J: '#dag-path-node-j',
+    DAG_PATH_LEVEL_M: '#dag-path-level-m',
+    DAG_PATH_VALUE: '#dag-path-value',
     
     // Search interface - Case Study section
     CASE_STUDY_YEAR_INPUT: '#target-year',

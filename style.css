@@ -753,6 +753,22 @@ h3, p, ul {
   transition: all var(--transition-fast) !important;
 }
 
+/* Path highlight styles for DAG most probable path */
+.path-highlight-node {
+  stroke: #d62828 !important;
+  stroke-width: 3 !important;
+}
+
+.path-highlight-edge {
+  stroke: #d62828 !important;
+  opacity: 1 !important;
+}
+
+.path-highlight-arrow {
+  fill: #d62828 !important;
+  stroke: #d62828 !important;
+}
+
 /* Date slider styles */
 .slider-container {
   display: flex;
@@ -857,7 +873,8 @@ h3, p, ul {
 }
 
 /* MFPT controls */
-.mfpt-controls {
+.mfpt-controls,
+.probability-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -865,12 +882,14 @@ h3, p, ul {
   flex: 1;
 }
 
-.mfpt-select-container {
+.mfpt-select-container,
+.probability-select-container {
   position: relative;
   flex: 0 0 auto;
 }
 
-.mfpt-select-container::after {
+.mfpt-select-container::after,
+.probability-select-container::after {
   content: '▼';
   position: absolute;
   right: 12px;
@@ -881,7 +900,8 @@ h3, p, ul {
   pointer-events: none;
 }
 
-.mfpt-select-container select {
+.mfpt-select-container select,
+.probability-select-container select {
   width: 140px;
   min-width: 140px;
   flex: 0 0 auto;
@@ -891,13 +911,15 @@ h3, p, ul {
   -moz-appearance: none;
 }
 
-.mfpt-to-label {
+.mfpt-to-label,
+.probability-to-label {
   color: var(--text-color);
   font-size: 14px;
   white-space: nowrap;
 }
 
-.mfpt-value {
+.mfpt-value,
+.probability-value {
   margin-left: 0.25rem;
   font-weight: 600;
   white-space: nowrap;
@@ -905,7 +927,9 @@ h3, p, ul {
   font-size: var(--font-size-base);
 }
 
-.mfpt-row.is-disabled select {
+.mfpt-row.is-disabled select,
+.probability-row.is-disabled select,
+.path-row.is-disabled select {
   cursor: not-allowed;
 }
 

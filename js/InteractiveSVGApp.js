@@ -58,6 +58,32 @@ export class InteractiveSVGApp {
         this.dagDateSliderPrev = null;
         this.dagDateSliderNext = null;
         this.currentDagSvgElement = null;
+
+        // DAG cumulative probability controls
+        this.dagProbRow = null;
+        this.dagProbNodeISelect = null;
+        this.dagProbLevelNSelect = null;
+        this.dagProbNodeJSelect = null;
+        this.dagProbLevelMSelect = null;
+        this.dagProbValue = null;
+        this.dagProbabilityCache = null;
+        this.dagIndexUtils = null;
+        this.dagKMaxData = null;
+
+        // DAG most probable path controls
+        this.dagPathRow = null;
+        this.dagPathNodeISelect = null;
+        this.dagPathLevelNSelect = null;
+        this.dagPathNodeJSelect = null;
+        this.dagPathLevelMSelect = null;
+        this.dagPathValue = null;
+        this.dagPathCache = null;
+        this.dagNodeElementMap = null;
+        this.dagEdgeElementMap = null;
+        this.dagArrowElementMap = null;
+        this.dagPathHighlightedNodes = [];
+        this.dagPathHighlightedEdges = [];
+        this.dagPathHighlightedArrows = [];
     }
 
     async initialize() {
@@ -770,6 +796,668 @@ export class InteractiveSVGApp {
     }
 
     // =========================================================================
+    // DAG CUMULATIVE PROBABILITY CONTROLS
+    // =========================================================================
+
+    initializeDagProbabilityControls() {
+        this.dagProbRow = document.querySelector(SELECTORS.DAG_PROB_ROW);
+        this.dagProbNodeISelect = document.querySelector(SELECTORS.DAG_PROB_NODE_I);
+        this.dagProbLevelNSelect = document.querySelector(SELECTORS.DAG_PROB_LEVEL_N);
+        this.dagProbNodeJSelect = document.querySelector(SELECTORS.DAG_PROB_NODE_J);
+        this.dagProbLevelMSelect = document.querySelector(SELECTORS.DAG_PROB_LEVEL_M);
+        this.dagProbValue = document.querySelector(SELECTORS.DAG_PROB_VALUE);
+
+        if (!this.dagProbRow || !this.dagProbNodeISelect || !this.dagProbLevelNSelect ||
+            !this.dagProbNodeJSelect || !this.dagProbLevelMSelect || !this.dagProbValue) {
+            return;
+        }
+
+        this.resetDagProbabilityControls();
+        this.setDagProbabilityControlsEnabled(false);
+
+        this.dagProbLevelNSelect.addEventListener('change', () => {
+            this.handleDagProbabilityLevelNChange();
+        });
+
+        this.dagProbLevelMSelect.addEventListener('change', () => {
+            this.handleDagProbabilityLevelMChange();
+        });
+
+        this.dagProbNodeISelect.addEventListener('change', () => {
+            this.updateDagProbabilityValue();
+        });
+
+        this.dagProbNodeJSelect.addEventListener('change', () => {
+            this.updateDagProbabilityValue();
+        });
+    }
+
+    setDagProbabilityControlsEnabled(enabled) {
+        if (!this.dagProbRow) return;
+        this.dagProbRow.classList.toggle('is-disabled', !enabled);
+        const selects = [
+            this.dagProbNodeISelect,
+            this.dagProbLevelNSelect,
+            this.dagProbNodeJSelect,
+            this.dagProbLevelMSelect
+        ];
+        selects.forEach(select => {
+            if (select) select.disabled = !enabled;
+        });
+    }
+
+    resetDagProbabilityControls() {
+        if (!this.dagProbNodeISelect || !this.dagProbLevelNSelect ||
+            !this.dagProbNodeJSelect || !this.dagProbLevelMSelect || !this.dagProbValue) {
+            return;
+        }
+
+        this.dagProbNodeISelect.innerHTML = '<option value="">Cluster i</option>';
+        this.dagProbLevelNSelect.innerHTML = '<option value="">n months</option>';
+        this.dagProbNodeJSelect.innerHTML = '<option value="">Cluster j</option>';
+        this.dagProbLevelMSelect.innerHTML = '<option value="">m months</option>';
+        this.dagProbValue.textContent = '\u2014';
+    }
+
+    setupDagProbabilityControls(kMaxData, dagData) {
+        if (!this.dagProbRow || !this.dagProbNodeISelect || !this.dagProbLevelNSelect ||
+            !this.dagProbNodeJSelect || !this.dagProbLevelMSelect || !this.dagProbValue) {
+            return;
+        }
+
+        this.dagKMaxData = kMaxData;
+        this.dagIndexUtils = this.dagDataLoader.indexUtils;
+        this.buildDagProbabilityCache(dagData);
+
+        this.populateDagLevelSelect(this.dagProbLevelNSelect, 1, kMaxData.length - 1, 'n months');
+        this.dagProbNodeISelect.innerHTML = '<option value="">Cluster i</option>';
+        this.dagProbLevelMSelect.innerHTML = '<option value="">m months</option>';
+        this.dagProbNodeJSelect.innerHTML = '<option value="">Cluster j</option>';
+        this.dagProbValue.textContent = '\u2014';
+
+        this.setDagProbabilityControlsEnabled(true);
+        this.dagProbNodeISelect.disabled = true;
+        this.dagProbLevelMSelect.disabled = true;
+        this.dagProbNodeJSelect.disabled = true;
+    }
+
+    populateDagLevelSelect(selectElement, minLevel, maxLevel, placeholderText) {
+        selectElement.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = placeholderText;
+        selectElement.appendChild(placeholder);
+
+        for (let level = minLevel; level <= maxLevel; level++) {
+            const option = document.createElement('option');
+            option.value = String(level);
+            option.textContent = `${level} months`;
+            selectElement.appendChild(option);
+        }
+
+        selectElement.value = '';
+    }
+
+    populateDagNodeSelect(selectElement, level, placeholderText) {
+        selectElement.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = placeholderText;
+        selectElement.appendChild(placeholder);
+
+        if (!Number.isInteger(level) || !this.dagKMaxData) {
+            selectElement.value = '';
+            return;
+        }
+
+        const nodeCount = this.dagKMaxData[level] || 0;
+        for (let i = 1; i <= nodeCount; i++) {
+            const option = document.createElement('option');
+            option.value = String(i);
+            option.textContent = `Cluster ${i}`;
+            selectElement.appendChild(option);
+        }
+
+        selectElement.value = '';
+    }
+
+    handleDagProbabilityLevelNChange() {
+        const levelN = parseInt(this.dagProbLevelNSelect.value, 10);
+
+        if (!Number.isInteger(levelN)) {
+            this.dagProbNodeISelect.disabled = true;
+            this.dagProbLevelMSelect.disabled = true;
+            this.dagProbNodeJSelect.disabled = true;
+            this.populateDagNodeSelect(this.dagProbNodeISelect, null, 'Cluster i');
+            this.dagProbLevelMSelect.innerHTML = '<option value="">m months</option>';
+            this.populateDagNodeSelect(this.dagProbNodeJSelect, null, 'Cluster j');
+            this.updateDagProbabilityValue();
+            return;
+        }
+
+        this.populateDagNodeSelect(this.dagProbNodeISelect, levelN, 'Cluster i');
+        this.dagProbNodeISelect.disabled = false;
+
+        this.populateDagLevelSelect(this.dagProbLevelMSelect, 0, levelN - 1, 'm months');
+        this.dagProbLevelMSelect.disabled = false;
+
+        this.dagProbNodeJSelect.disabled = true;
+        this.populateDagNodeSelect(this.dagProbNodeJSelect, null, 'Cluster j');
+        this.updateDagProbabilityValue();
+    }
+
+    handleDagProbabilityLevelMChange() {
+        const levelM = parseInt(this.dagProbLevelMSelect.value, 10);
+
+        if (!Number.isInteger(levelM)) {
+            this.dagProbNodeJSelect.disabled = true;
+            this.populateDagNodeSelect(this.dagProbNodeJSelect, null, 'Cluster j');
+            this.updateDagProbabilityValue();
+            return;
+        }
+
+        this.populateDagNodeSelect(this.dagProbNodeJSelect, levelM, 'Cluster j');
+        this.dagProbNodeJSelect.disabled = false;
+        this.updateDagProbabilityValue();
+    }
+
+    buildDagProbabilityCache(dagData) {
+        if (!dagData?.graph?.nodes || !dagData?.graph?.links) {
+            this.dagProbabilityCache = null;
+            return;
+        }
+
+        const totalNodes = dagData.graph.nodes.length;
+        const adjacency = Array.from({ length: totalNodes + 1 }, () => []);
+        const indegree = new Array(totalNodes + 1).fill(0);
+
+        dagData.graph.links.forEach(link => {
+            const source = link.source;
+            const target = link.target;
+            const weight = link.weight;
+            const logWeight = (typeof weight === 'number' && weight > 0) ? Math.log(weight) : -Infinity;
+            adjacency[source].push({ target, logWeight });
+            indegree[target] += 1;
+        });
+
+        const queue = [];
+        for (let i = 1; i <= totalNodes; i++) {
+            if (indegree[i] === 0) queue.push(i);
+        }
+
+        const topoOrder = [];
+        let idx = 0;
+        while (idx < queue.length) {
+            const node = queue[idx++];
+            topoOrder.push(node);
+            adjacency[node].forEach(edge => {
+                indegree[edge.target] -= 1;
+                if (indegree[edge.target] === 0) queue.push(edge.target);
+            });
+        }
+
+        if (topoOrder.length !== totalNodes) {
+            Logger.warn(`Topological sort incomplete: expected ${totalNodes}, got ${topoOrder.length}`);
+        }
+
+        this.dagProbabilityCache = {
+            adjacency,
+            topoOrder,
+            totalNodes
+        };
+    }
+
+    calculateDagCumulativeProbability(sourceId, targetId) {
+        if (!this.dagProbabilityCache) return null;
+
+        const { adjacency, topoOrder, totalNodes } = this.dagProbabilityCache;
+        if (sourceId < 1 || sourceId > totalNodes || targetId < 1 || targetId > totalNodes) {
+            return null;
+        }
+
+        const logp = new Array(totalNodes + 1).fill(-Infinity);
+        logp[sourceId] = 0;
+
+        const logsum2 = (a, b) => {
+            if (a === -Infinity) return b;
+            if (b === -Infinity) return a;
+            const m = Math.max(a, b);
+            return m + Math.log(Math.exp(a - m) + Math.exp(b - m));
+        };
+
+        topoOrder.forEach(node => {
+            const currentLog = logp[node];
+            if (currentLog === -Infinity) return;
+            adjacency[node].forEach(edge => {
+                if (edge.logWeight === -Infinity) return;
+                const candidate = currentLog + edge.logWeight;
+                logp[edge.target] = logsum2(logp[edge.target], candidate);
+            });
+        });
+
+        const result = logp[targetId];
+        return Number.isFinite(result) ? Math.exp(result) : 0;
+    }
+
+    updateDagProbabilityValue() {
+        if (!this.dagProbValue) return;
+
+        const nodeI = parseInt(this.dagProbNodeISelect.value, 10);
+        const levelN = parseInt(this.dagProbLevelNSelect.value, 10);
+        const nodeJ = parseInt(this.dagProbNodeJSelect.value, 10);
+        const levelM = parseInt(this.dagProbLevelMSelect.value, 10);
+
+        if (!Number.isInteger(nodeI) || !Number.isInteger(levelN) ||
+            !Number.isInteger(nodeJ) || !Number.isInteger(levelM) || levelM >= levelN) {
+            this.dagProbValue.textContent = '\u2014';
+            return;
+        }
+
+        try {
+            const sourceId = this.dagIndexUtils.globalIndexFromLevel(levelN, nodeI);
+            const targetId = this.dagIndexUtils.globalIndexFromLevel(levelM, nodeJ);
+            const probability = this.calculateDagCumulativeProbability(sourceId, targetId);
+
+            if (typeof probability === 'number') {
+                this.dagProbValue.textContent = probability.toFixed(2);
+            } else {
+                this.dagProbValue.textContent = 'N/A';
+            }
+        } catch (error) {
+            Logger.warn('Failed to compute DAG cumulative probability:', error.message);
+            this.dagProbValue.textContent = 'N/A';
+        }
+    }
+
+    // =========================================================================
+    // DAG MOST PROBABLE PATH CONTROLS
+    // =========================================================================
+
+    initializeDagPathControls() {
+        this.dagPathRow = document.querySelector(SELECTORS.DAG_PATH_ROW);
+        this.dagPathNodeISelect = document.querySelector(SELECTORS.DAG_PATH_NODE_I);
+        this.dagPathLevelNSelect = document.querySelector(SELECTORS.DAG_PATH_LEVEL_N);
+        this.dagPathNodeJSelect = document.querySelector(SELECTORS.DAG_PATH_NODE_J);
+        this.dagPathLevelMSelect = document.querySelector(SELECTORS.DAG_PATH_LEVEL_M);
+        this.dagPathValue = document.querySelector(SELECTORS.DAG_PATH_VALUE);
+
+        if (!this.dagPathRow || !this.dagPathNodeISelect || !this.dagPathLevelNSelect ||
+            !this.dagPathNodeJSelect || !this.dagPathLevelMSelect || !this.dagPathValue) {
+            return;
+        }
+
+        this.resetDagPathControls();
+        this.setDagPathControlsEnabled(false);
+
+        this.dagPathLevelNSelect.addEventListener('change', () => {
+            this.handleDagPathLevelNChange();
+        });
+
+        this.dagPathLevelMSelect.addEventListener('change', () => {
+            this.handleDagPathLevelMChange();
+        });
+
+        this.dagPathNodeISelect.addEventListener('change', () => {
+            this.updateDagPathValue();
+        });
+
+        this.dagPathNodeJSelect.addEventListener('change', () => {
+            this.updateDagPathValue();
+        });
+    }
+
+    setDagPathControlsEnabled(enabled) {
+        if (!this.dagPathRow) return;
+        this.dagPathRow.classList.toggle('is-disabled', !enabled);
+        const selects = [
+            this.dagPathNodeISelect,
+            this.dagPathLevelNSelect,
+            this.dagPathNodeJSelect,
+            this.dagPathLevelMSelect
+        ];
+        selects.forEach(select => {
+            if (select) select.disabled = !enabled;
+        });
+    }
+
+    resetDagPathControls() {
+        if (!this.dagPathNodeISelect || !this.dagPathLevelNSelect ||
+            !this.dagPathNodeJSelect || !this.dagPathLevelMSelect || !this.dagPathValue) {
+            return;
+        }
+
+        this.dagPathNodeISelect.innerHTML = '<option value="">Cluster i</option>';
+        this.dagPathLevelNSelect.innerHTML = '<option value="">n months</option>';
+        this.dagPathNodeJSelect.innerHTML = '<option value="">Cluster j</option>';
+        this.dagPathLevelMSelect.innerHTML = '<option value="">m months</option>';
+        this.dagPathValue.textContent = '\u2014';
+        this.clearDagPathHighlight();
+    }
+
+    setupDagPathControls(kMaxData, dagData) {
+        if (!this.dagPathRow || !this.dagPathNodeISelect || !this.dagPathLevelNSelect ||
+            !this.dagPathNodeJSelect || !this.dagPathLevelMSelect || !this.dagPathValue) {
+            return;
+        }
+
+        this.dagKMaxData = kMaxData;
+        this.dagIndexUtils = this.dagDataLoader.indexUtils;
+        this.buildDagPathCache(dagData);
+        this.buildDagPathHighlightMaps();
+
+        this.populateDagLevelSelect(this.dagPathLevelNSelect, 1, kMaxData.length - 1, 'n months');
+        this.dagPathNodeISelect.innerHTML = '<option value="">Cluster i</option>';
+        this.dagPathLevelMSelect.innerHTML = '<option value="">m months</option>';
+        this.dagPathNodeJSelect.innerHTML = '<option value="">Cluster j</option>';
+        this.dagPathValue.textContent = '\u2014';
+
+        this.setDagPathControlsEnabled(true);
+        this.dagPathNodeISelect.disabled = true;
+        this.dagPathLevelMSelect.disabled = true;
+        this.dagPathNodeJSelect.disabled = true;
+    }
+
+    handleDagPathLevelNChange() {
+        const levelN = parseInt(this.dagPathLevelNSelect.value, 10);
+
+        if (!Number.isInteger(levelN)) {
+            this.dagPathNodeISelect.disabled = true;
+            this.dagPathLevelMSelect.disabled = true;
+            this.dagPathNodeJSelect.disabled = true;
+            this.populateDagNodeSelect(this.dagPathNodeISelect, null, 'Cluster i');
+            this.dagPathLevelMSelect.innerHTML = '<option value="">m months</option>';
+            this.populateDagNodeSelect(this.dagPathNodeJSelect, null, 'Cluster j');
+            this.updateDagPathValue();
+            return;
+        }
+
+        this.populateDagNodeSelect(this.dagPathNodeISelect, levelN, 'Cluster i');
+        this.dagPathNodeISelect.disabled = false;
+
+        this.populateDagLevelSelect(this.dagPathLevelMSelect, 0, levelN - 1, 'm months');
+        this.dagPathLevelMSelect.disabled = false;
+
+        this.dagPathNodeJSelect.disabled = true;
+        this.populateDagNodeSelect(this.dagPathNodeJSelect, null, 'Cluster j');
+        this.updateDagPathValue();
+    }
+
+    handleDagPathLevelMChange() {
+        const levelM = parseInt(this.dagPathLevelMSelect.value, 10);
+
+        if (!Number.isInteger(levelM)) {
+            this.dagPathNodeJSelect.disabled = true;
+            this.populateDagNodeSelect(this.dagPathNodeJSelect, null, 'Cluster j');
+            this.updateDagPathValue();
+            return;
+        }
+
+        this.populateDagNodeSelect(this.dagPathNodeJSelect, levelM, 'Cluster j');
+        this.dagPathNodeJSelect.disabled = false;
+        this.updateDagPathValue();
+    }
+
+    buildDagPathCache(dagData) {
+        if (!dagData?.graph?.nodes || !dagData?.graph?.links) {
+            this.dagPathCache = null;
+            return;
+        }
+
+        const totalNodes = dagData.graph.nodes.length;
+        const adjacency = Array.from({ length: totalNodes + 1 }, () => []);
+        const indegree = new Array(totalNodes + 1).fill(0);
+
+        dagData.graph.links.forEach(link => {
+            const source = link.source;
+            const target = link.target;
+            let cost = link.cost;
+            if (!Number.isFinite(cost)) {
+                const weight = link.weight;
+                cost = (typeof weight === 'number' && weight > 0) ? -Math.log(weight) : Infinity;
+            }
+            adjacency[source].push({ target, cost });
+            indegree[target] += 1;
+        });
+
+        const queue = [];
+        for (let i = 1; i <= totalNodes; i++) {
+            if (indegree[i] === 0) queue.push(i);
+        }
+
+        const topoOrder = [];
+        let idx = 0;
+        while (idx < queue.length) {
+            const node = queue[idx++];
+            topoOrder.push(node);
+            adjacency[node].forEach(edge => {
+                indegree[edge.target] -= 1;
+                if (indegree[edge.target] === 0) queue.push(edge.target);
+            });
+        }
+
+        this.dagPathCache = {
+            adjacency,
+            topoOrder,
+            totalNodes
+        };
+    }
+
+    calculateDagMostProbablePath(sourceId, targetId) {
+        if (!this.dagPathCache) return null;
+
+        const { adjacency, topoOrder, totalNodes } = this.dagPathCache;
+        if (sourceId < 1 || sourceId > totalNodes || targetId < 1 || targetId > totalNodes) {
+            return null;
+        }
+
+        const dist = new Array(totalNodes + 1).fill(Infinity);
+        const prev = new Array(totalNodes + 1).fill(null);
+        dist[sourceId] = 0;
+
+        topoOrder.forEach(node => {
+            const current = dist[node];
+            if (!Number.isFinite(current)) return;
+            adjacency[node].forEach(edge => {
+                if (!Number.isFinite(edge.cost)) return;
+                const candidate = current + edge.cost;
+                if (candidate < dist[edge.target]) {
+                    dist[edge.target] = candidate;
+                    prev[edge.target] = node;
+                }
+            });
+        });
+
+        if (!Number.isFinite(dist[targetId])) {
+            return null;
+        }
+
+        const path = [];
+        let cursor = targetId;
+        while (cursor !== null && cursor !== undefined) {
+            path.push(cursor);
+            if (cursor === sourceId) break;
+            cursor = prev[cursor];
+        }
+
+        if (path[path.length - 1] !== sourceId) {
+            return null;
+        }
+
+        path.reverse();
+        return {
+            path,
+            totalCost: dist[targetId],
+            totalProbability: Math.exp(-dist[targetId])
+        };
+    }
+
+    buildDagPathHighlightMaps() {
+        this.dagNodeElementMap = new Map();
+        this.dagEdgeElementMap = new Map();
+        this.dagArrowElementMap = new Map();
+
+        const nodePositions = this.dagInteractionManager?.nodePositions || [];
+        nodePositions.forEach(node => {
+            if (node?.globalId && node?.element) {
+                this.dagNodeElementMap.set(node.globalId, node.element);
+            }
+        });
+
+        const edgeData = this.dagInteractionManager?.svgIndexToEdgeData || {};
+        Object.values(edgeData).forEach(entry => {
+            const source = entry?.jsonEdge?.source;
+            const target = entry?.jsonEdge?.target;
+            const element = entry?.svgElement;
+            if (source && target && element) {
+                this.dagEdgeElementMap.set(`${source}-${target}`, element);
+            }
+        });
+
+        const svgElement = this.currentDagSvgElement;
+        if (!svgElement) return;
+
+        const arrowElements = Array.from(
+            svgElement.querySelectorAll('path[fill-rule="nonzero"][fill]:not([fill="none"])')
+        ).filter(el => el.getAttribute('stroke-linejoin') !== 'miter');
+
+        const arrowCenters = arrowElements.map(element => {
+            const pathData = element.getAttribute('d') || '';
+            const coordMatches = pathData.matchAll(/([\d.]+)\s+([\d.]+)/g);
+            let minX = Infinity;
+            let maxX = -Infinity;
+            let minY = Infinity;
+            let maxY = -Infinity;
+            let count = 0;
+
+            for (const match of coordMatches) {
+                const x = parseFloat(match[1]);
+                const y = parseFloat(match[2]);
+                if (Number.isNaN(x) || Number.isNaN(y)) continue;
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+                count += 1;
+            }
+
+            if (count === 0) return null;
+            return {
+                element,
+                x: (minX + maxX) / 2,
+                y: (minY + maxY) / 2
+            };
+        }).filter(Boolean);
+
+        const usedArrows = new Set();
+        const maxDistance = 30;
+
+        Object.values(edgeData).forEach(entry => {
+            const source = entry?.jsonEdge?.source;
+            const target = entry?.jsonEdge?.target;
+            const coords = entry?.coordinates;
+            if (!source || !target || !coords) return;
+
+            let best = null;
+            let bestDist = Infinity;
+
+            arrowCenters.forEach((arrow, index) => {
+                if (usedArrows.has(index)) return;
+                const dx = arrow.x - coords.end.x;
+                const dy = arrow.y - coords.end.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = { arrow, index };
+                }
+            });
+
+            if (best && bestDist <= maxDistance) {
+                this.dagArrowElementMap.set(`${source}-${target}`, best.arrow.element);
+                usedArrows.add(best.index);
+            }
+        });
+    }
+
+    clearDagPathHighlight() {
+        this.dagPathHighlightedNodes.forEach(node => {
+            node.classList.remove('path-highlight-node');
+        });
+        this.dagPathHighlightedEdges.forEach(edge => {
+            edge.classList.remove('path-highlight-edge');
+        });
+        this.dagPathHighlightedArrows.forEach(arrow => {
+            arrow.classList.remove('path-highlight-arrow');
+        });
+        this.dagPathHighlightedNodes = [];
+        this.dagPathHighlightedEdges = [];
+        this.dagPathHighlightedArrows = [];
+    }
+
+    applyDagPathHighlight(path) {
+        if (!Array.isArray(path) || path.length === 0) return;
+
+        this.clearDagPathHighlight();
+
+        path.forEach(nodeId => {
+            const nodeElement = this.dagNodeElementMap?.get(nodeId);
+            if (nodeElement) {
+                nodeElement.classList.add('path-highlight-node');
+                this.dagPathHighlightedNodes.push(nodeElement);
+            }
+        });
+
+        for (let i = 0; i < path.length - 1; i++) {
+            const source = path[i];
+            const target = path[i + 1];
+            const edgeElement = this.dagEdgeElementMap?.get(`${source}-${target}`);
+            if (edgeElement) {
+                edgeElement.classList.add('path-highlight-edge');
+                this.dagPathHighlightedEdges.push(edgeElement);
+            }
+
+            const arrowElement = this.dagArrowElementMap?.get(`${source}-${target}`);
+            if (arrowElement) {
+                arrowElement.classList.add('path-highlight-arrow');
+                this.dagPathHighlightedArrows.push(arrowElement);
+            }
+        }
+    }
+
+    updateDagPathValue() {
+        if (!this.dagPathValue) return;
+
+        const nodeI = parseInt(this.dagPathNodeISelect.value, 10);
+        const levelN = parseInt(this.dagPathLevelNSelect.value, 10);
+        const nodeJ = parseInt(this.dagPathNodeJSelect.value, 10);
+        const levelM = parseInt(this.dagPathLevelMSelect.value, 10);
+
+        if (!Number.isInteger(nodeI) || !Number.isInteger(levelN) ||
+            !Number.isInteger(nodeJ) || !Number.isInteger(levelM) || levelM >= levelN) {
+            this.dagPathValue.textContent = '\u2014';
+            this.clearDagPathHighlight();
+            return;
+        }
+
+        try {
+            const sourceId = this.dagIndexUtils.globalIndexFromLevel(levelN, nodeI);
+            const targetId = this.dagIndexUtils.globalIndexFromLevel(levelM, nodeJ);
+            const result = this.calculateDagMostProbablePath(sourceId, targetId);
+
+            if (result && Number.isFinite(result.totalProbability)) {
+                this.dagPathValue.textContent = result.totalProbability.toFixed(2);
+                this.applyDagPathHighlight(result.path);
+            } else {
+                this.dagPathValue.textContent = 'none';
+                this.clearDagPathHighlight();
+            }
+        } catch (error) {
+            Logger.warn('Failed to compute DAG most probable path:', error.message);
+            this.dagPathValue.textContent = 'none';
+            this.clearDagPathHighlight();
+        }
+    }
+
+    // =========================================================================
     // DAG SECTION METHODS
     // =========================================================================
 
@@ -785,6 +1473,10 @@ export class InteractiveSVGApp {
             // Show loading state
             this.showDAGLoading();
             this.hideDAGError();
+            this.resetDagProbabilityControls();
+            this.setDagProbabilityControlsEnabled(false);
+            this.resetDagPathControls();
+            this.setDagPathControlsEnabled(false);
             
             // Load and validate DAG data
             Logger.debug('Loading DAG data and validation...');
@@ -833,6 +1525,9 @@ export class InteractiveSVGApp {
             // Setup DAG interactions
             Logger.debug('Setting up DAG interactions...');
             this.dagInteractionManager.setupDAGInteractions(svgElement);
+
+            this.setupDagProbabilityControls(kMaxData, dagData);
+            this.setupDagPathControls(kMaxData, dagData);
             
             // Hide loading and show content
             this.hideDAGLoading();
@@ -863,6 +1558,8 @@ export class InteractiveSVGApp {
             Logger.error('Failed to load DAG visualization:', error);
             this.hideDAGLoading();
             this.showDAGError('Failed to load DAG visualisation: ' + error.message);
+            this.setDagProbabilityControlsEnabled(false);
+            this.setDagPathControlsEnabled(false);
         }
     }
 
@@ -1292,6 +1989,8 @@ export class InteractiveSVGApp {
             this.dagDateSliderPrev = document.querySelector(SELECTORS.DAG_DATE_SLIDER_PREV);
             this.dagDateSliderNext = document.querySelector(SELECTORS.DAG_DATE_SLIDER_NEXT);
             this.setupDAGDateSlider();
+            this.initializeDagProbabilityControls();
+            this.initializeDagPathControls();
 
             // Set up DAG callbacks
             this.dagUiController.setOnSvgSelectedCallback((finalSelection) => {

@@ -18,7 +18,7 @@
     <div class="svg-selector">
         <div class="info-panel">
             <h3>Interactive Directed Acyclic Graph Visualisations</h3>
-            <p>Select an SVG file to load and interact with. Choose target season from the dropdown (currently only 'All' is available), then click load.</p>
+            <p>Select an SVG file to load and interact with. Choose target season from the dropdown (currently only 'All' is available), then click load. Use the date slider to highlight nodes by their affiliation probabilities for a given target date; the slider activates after loading and the arrows step one month at a time. Use the cumulative probability dropdowns to calculate the cumulative probability from a node at level n to a node at level m &lt; n. Use the most probable path dropdowns to find and highlight (in red) the most probable path between a node at level n and a node at level m &lt; n.</p>
             <p><strong>Desktop:</strong>  Hover over nodes and edges to see details, click nodes for more information.</p>
             <p><strong>Mobile:</strong> Tap nodes and edges to see details, long press nodes for more information.</p>
         </div>
@@ -44,6 +44,62 @@
                     <button class="slider-step-btn" id="dag-slider-prev-btn" disabled>&#9664;</button>
                     <span id="dag-slider-date-label">&mdash;</span>
                     <button class="slider-step-btn" id="dag-slider-next-btn" disabled>&#9654;</button>
+                </div>
+            </div>
+
+            <div class="control-row probability-row is-disabled" id="dag-prob-row">
+                <label for="dag-prob-node-i"><strong>Cumulative probability:</strong></label>
+                <div class="probability-controls">
+                    <div class="probability-select-container">
+                        <select id="dag-prob-node-i" disabled>
+                            <option value="">Cluster i</option>
+                        </select>
+                    </div>
+                    <div class="probability-select-container">
+                        <select id="dag-prob-level-n" disabled>
+                            <option value="">n months</option>
+                        </select>
+                    </div>
+                    <span class="probability-to-label">to</span>
+                    <div class="probability-select-container">
+                        <select id="dag-prob-node-j" disabled>
+                            <option value="">Cluster j</option>
+                        </select>
+                    </div>
+                    <div class="probability-select-container">
+                        <select id="dag-prob-level-m" disabled>
+                            <option value="">m months</option>
+                        </select>
+                    </div>
+                    <span id="dag-prob-value" class="probability-value">&mdash;</span>
+                </div>
+            </div>
+
+            <div class="control-row path-row is-disabled" id="dag-path-row">
+                <label for="dag-path-node-i"><strong>Most probable path:</strong></label>
+                <div class="probability-controls">
+                    <div class="probability-select-container">
+                        <select id="dag-path-node-i" disabled>
+                            <option value="">Cluster i</option>
+                        </select>
+                    </div>
+                    <div class="probability-select-container">
+                        <select id="dag-path-level-n" disabled>
+                            <option value="">n months</option>
+                        </select>
+                    </div>
+                    <span class="probability-to-label">to</span>
+                    <div class="probability-select-container">
+                        <select id="dag-path-node-j" disabled>
+                            <option value="">Cluster j</option>
+                        </select>
+                    </div>
+                    <div class="probability-select-container">
+                        <select id="dag-path-level-m" disabled>
+                            <option value="">m months</option>
+                        </select>
+                    </div>
+                    <span id="dag-path-value" class="probability-value">&mdash;</span>
                 </div>
             </div>
         </div>
