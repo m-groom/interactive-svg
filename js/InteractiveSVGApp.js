@@ -43,6 +43,14 @@ export class InteractiveSVGApp {
         this.dateSliderNext = null;
         this.currentSvgElement = null;
 
+        // MFPT controls (Markov Chain)
+        this.mfptRow = null;
+        this.mfptNodeISelect = null;
+        this.mfptNodeJSelect = null;
+        this.mfptValue = null;
+        this.mfptNodeCount = null;
+        this.kMaxData = null;
+
         // DAG affiliation matrix state (DAG date slider)
         this.dagAffiliationData = {}; // Map: level -> {dates, affiliations}
         this.dagDateSlider = null;
@@ -68,6 +76,7 @@ export class InteractiveSVGApp {
 
             this.uiController.initialize();
             this.interactionManager.initialize();
+            this.initializeMFPTControls();
 
             // Set up Markov Chain callbacks
             this.uiController.setOnSvgSelectedCallback((finalSelection) => {
@@ -121,6 +130,8 @@ export class InteractiveSVGApp {
 
             // Clear previous affiliation highlighting
             this.clearDateHighlighting();
+            this.resetMfptControls();
+            this.setMfptControlsEnabled(false);
 
             // Load SVG and JSON data
             const { svgElement, jsonParser } = await this.svgLoader.loadSVGWithData(filename);
@@ -144,6 +155,7 @@ export class InteractiveSVGApp {
             const leadTime = this.svgLoader.getCurrentLeadTime();
             if (leadTime) {
                 await this.loadAffiliationMatrix(leadTime);
+                await this.setupMfptForLeadTime(leadTime);
             }
 
         } catch (error) {
@@ -368,6 +380,138 @@ export class InteractiveSVGApp {
             });
         } catch {
             return dateString;
+        }
+    }
+
+    // =========================================================================
+    // MFPT CONTROLS (MARKOV CHAIN)
+    // =========================================================================
+
+    initializeMFPTControls() {
+        this.mfptRow = document.querySelector(SELECTORS.MFPT_ROW);
+        this.mfptNodeISelect = document.querySelector(SELECTORS.MFPT_NODE_I);
+        this.mfptNodeJSelect = document.querySelector(SELECTORS.MFPT_NODE_J);
+        this.mfptValue = document.querySelector(SELECTORS.MFPT_VALUE);
+
+        if (!this.mfptRow || !this.mfptNodeISelect || !this.mfptNodeJSelect || !this.mfptValue) {
+            return;
+        }
+
+        this.resetMfptControls();
+        this.setMfptControlsEnabled(false);
+
+        this.mfptNodeISelect.addEventListener('change', () => {
+            this.handleMfptNodeIChange();
+        });
+
+        this.mfptNodeJSelect.addEventListener('change', () => {
+            this.updateMfptValue();
+        });
+    }
+
+    setMfptControlsEnabled(enabled) {
+        if (!this.mfptRow || !this.mfptNodeISelect || !this.mfptNodeJSelect) return;
+
+        this.mfptRow.classList.toggle('is-disabled', !enabled);
+        this.mfptNodeISelect.disabled = !enabled;
+        this.mfptNodeJSelect.disabled = !enabled;
+    }
+
+    resetMfptControls() {
+        if (!this.mfptNodeISelect || !this.mfptNodeJSelect || !this.mfptValue) return;
+
+        this.mfptNodeCount = null;
+        this.populateMfptSelect(this.mfptNodeISelect, 0, 'Select Cluster i');
+        this.populateMfptSelect(this.mfptNodeJSelect, 0, 'Select Cluster j');
+        this.mfptValue.textContent = '\u2014';
+    }
+
+    async loadKMaxDataIfNeeded() {
+        if (this.kMaxData) return;
+        try {
+            this.kMaxData = await this.dagDataLoader.loadKMaxData();
+        } catch (error) {
+            Logger.warn('Failed to load K_max data for MFPT controls:', error.message);
+            this.kMaxData = null;
+        }
+    }
+
+    async setupMfptForLeadTime(leadTime) {
+        if (!this.mfptRow || !this.mfptNodeISelect || !this.mfptNodeJSelect || !leadTime) return;
+
+        await this.loadKMaxDataIfNeeded();
+        const nodeCount = this.kMaxData?.[leadTime] || 0;
+
+        if (!nodeCount) {
+            this.resetMfptControls();
+            this.setMfptControlsEnabled(false);
+            return;
+        }
+
+        this.mfptNodeCount = nodeCount;
+        this.populateMfptSelect(this.mfptNodeISelect, nodeCount, 'Select Cluster i');
+        this.populateMfptSelect(this.mfptNodeJSelect, nodeCount, 'Select Cluster j');
+        this.setMfptControlsEnabled(true);
+    }
+
+    populateMfptSelect(selectElement, nodeCount, placeholderText, excludedId = null) {
+        selectElement.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = placeholderText;
+        selectElement.appendChild(placeholder);
+
+        for (let i = 1; i <= nodeCount; i++) {
+            if (excludedId && i === excludedId) continue;
+            const option = document.createElement('option');
+            option.value = String(i);
+            option.textContent = `Cluster ${i}`;
+            selectElement.appendChild(option);
+        }
+
+        selectElement.value = '';
+    }
+
+    handleMfptNodeIChange() {
+        if (!this.mfptNodeISelect || !this.mfptNodeJSelect) return;
+
+        const selectedI = parseInt(this.mfptNodeISelect.value, 10);
+        const excludeId = Number.isInteger(selectedI) ? selectedI : null;
+        const currentJ = this.mfptNodeJSelect.value;
+
+        this.populateMfptSelect(
+            this.mfptNodeJSelect,
+            this.mfptNodeCount || 0,
+            'Select Cluster j',
+            excludeId
+        );
+
+        if (currentJ && currentJ !== String(excludeId)) {
+            this.mfptNodeJSelect.value = currentJ;
+        }
+
+        this.updateMfptValue();
+    }
+
+    updateMfptValue() {
+        if (!this.mfptValue || !this.mfptNodeISelect || !this.mfptNodeJSelect) return;
+
+        const nodeI = parseInt(this.mfptNodeISelect.value, 10);
+        const nodeJ = parseInt(this.mfptNodeJSelect.value, 10);
+
+        if (!Number.isInteger(nodeI) || !Number.isInteger(nodeJ)) {
+            this.mfptValue.textContent = '\u2014';
+            return;
+        }
+
+        const nodeData = this.svgParser?.jsonParser?.getNodeData(nodeI);
+        const mfptTo = Array.isArray(nodeData?.mfpt_to) ? nodeData.mfpt_to[nodeJ - 1] : null;
+
+        if (Number.isFinite(mfptTo)) {
+            this.mfptValue.textContent = `${mfptTo.toFixed(2)} months`;
+        } else {
+            this.mfptValue.textContent = 'N/A';
         }
     }
 
@@ -1101,6 +1245,7 @@ export class InteractiveSVGApp {
             this.dateSliderPrev = document.querySelector(SELECTORS.DATE_SLIDER_PREV);
             this.dateSliderNext = document.querySelector(SELECTORS.DATE_SLIDER_NEXT);
             this.setupDateSlider();
+            this.initializeMFPTControls();
 
             // Set up Markov Chain callbacks
             this.uiController.setOnSvgSelectedCallback((finalSelection) => {

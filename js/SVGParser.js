@@ -88,7 +88,10 @@ export class SVGParser {
                         id: nodeId,
                         lambda: jsonParser.getNodeLambdaValues(nodeId),
                         ev: jsonNode.ev,
-                        dates: jsonNode.dates
+                        dates: jsonNode.dates,
+                        mean_return: jsonNode.mean_return,
+                        mean_exit: jsonNode.mean_exit,
+                        mfpt_to: jsonNode.mfpt_to
                     };
                 } else {
                     Logger.warn(`No JSON data found for node ${nodeId}`);

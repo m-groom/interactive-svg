@@ -187,12 +187,25 @@ export class InteractionManager extends BaseInteractionManager {
             }
         }
 
+        const formatMonths = (value) => {
+            if (!Number.isFinite(value)) return 'N/A';
+            return `${value.toFixed(2)} months`;
+        };
+
+        const meanReturnText = formatMonths(nodeData.mean_return);
+        const meanExitText = formatMonths(nodeData.mean_exit);
+        const meanTimesContent = `
+            <p style="text-align: left;"><strong>Mean Return Time:</strong> ${meanReturnText}</p>
+            <p style="text-align: left;"><strong>Mean Exit Time:</strong> ${meanExitText}</p>
+        `;
+
         const displayName = nodeData.displayName || `Cluster ${nodeData.id}`;
         const content = `
             <h4 style="margin-bottom: 1rem;">${Utils.escapeHTML(displayName)}</h4>
             ${classProbContent}
             ${affiliationProbContent}
             ${transitionProbContent}
+            ${meanTimesContent}
         `;
         
         this.showTooltip(event, content);

@@ -856,6 +856,38 @@ h3, p, ul {
   font-size: var(--font-size-base);
 }
 
+/* MFPT controls */
+.mfpt-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.mfpt-controls select {
+  width: auto;
+  min-width: 140px;
+  flex: 0 0 auto;
+}
+
+.mfpt-to-label {
+  color: var(--text-color);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.mfpt-value {
+  margin-left: 0.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--primary-color);
+}
+
+.mfpt-row.is-disabled select {
+  cursor: not-allowed;
+}
+
 /* Make text elements pass through mouse events to nodes underneath */
 svg text,
 svg g,
@@ -908,6 +940,12 @@ svg use {
 
   .search-container::after {
     right: 8px;
+  }
+
+  .mfpt-value {
+    margin-left: 0;
+    width: 100%;
+    text-align: left;
   }
 
   /* Mobile modal adjustments */

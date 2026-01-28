@@ -77,6 +77,10 @@ export const SELECTORS = {
     DATE_SLIDER_LABEL: '#slider-date-label',
     DATE_SLIDER_PREV: '#slider-prev-btn',
     DATE_SLIDER_NEXT: '#slider-next-btn',
+    MFPT_ROW: '#mfpt-row',
+    MFPT_NODE_I: '#mfpt-node-i',
+    MFPT_NODE_J: '#mfpt-node-j',
+    MFPT_VALUE: '#mfpt-value',
     
     // Search interface - DAG section
     DAG_SVG_CONTAINER: '#dag-svg-container',
