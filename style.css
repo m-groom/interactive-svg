@@ -846,7 +846,8 @@ h3, p, ul {
   background: transparent;
 }
 
-#slider-date-label {
+#slider-date-label,
+#dag-slider-date-label {
   font-weight: 600;
   white-space: nowrap;
   min-width: 80px;
