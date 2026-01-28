@@ -106,7 +106,7 @@ export class InteractiveSVGApp {
 
         } catch (error) {
             Logger.error('Failed to initialize InteractiveSVGApp:', error);
-            this.showError('Failed to initialize application: ' + error.message);
+            this.showError('Failed to initialise application: ' + error.message);
         }
     }
 
@@ -148,7 +148,7 @@ export class InteractiveSVGApp {
 
         } catch (error) {
             Logger.error('Failed to load SVG:', error);
-            this.showError('Failed to load visualization: ' + error.message);
+            this.showError('Failed to load visualisation: ' + error.message);
         }
     }
 
@@ -718,7 +718,7 @@ export class InteractiveSVGApp {
         } catch (error) {
             Logger.error('Failed to load DAG visualization:', error);
             this.hideDAGLoading();
-            this.showDAGError('Failed to load DAG visualization: ' + error.message);
+            this.showDAGError('Failed to load DAG visualisation: ' + error.message);
         }
     }
 
@@ -1112,7 +1112,7 @@ export class InteractiveSVGApp {
 
         } catch (error) {
             Logger.error('Failed to initialize Markov Chain section:', error);
-            this.showError('Failed to initialize Markov Chain section: ' + error.message);
+            this.showError('Failed to initialise Markov Chain section: ' + error.message);
         }
     }
 
@@ -1150,6 +1150,12 @@ export class InteractiveSVGApp {
 
             // Set up DAG callbacks
             this.dagUiController.setOnSvgSelectedCallback((finalSelection) => {
+                // Check if season other than "All" is selected
+                if (finalSelection.seasonValue !== 'all') {
+                    this.showDAGError(`Season-specific DAG visualisations are not yet available. Please select "All" to view the combined DAG visualisation.`);
+                    return;
+                }
+                this.hideDAGError();
                 this.loadDAGSVG(finalSelection.finalFilename);
             });
 
@@ -1158,7 +1164,7 @@ export class InteractiveSVGApp {
 
         } catch (error) {
             Logger.error('Failed to initialize DAG section:', error);
-            this.showDAGError('Failed to initialize DAG section: ' + error.message);
+            this.showDAGError('Failed to initialise DAG section: ' + error.message);
         }
     }
 
