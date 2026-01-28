@@ -18,7 +18,7 @@
     <div class="svg-selector">
         <div class="info-panel">
             <h3>Interactive Markov Chain Visualisations</h3>
-            <p>Select an SVG file to load and interact with. Choose lead time from the dropdown, then click load. Use the date slider to highlight nodes by their affiliation probabilities for a given target date; the slider activates after loading and the arrows step one month at a time.</p>
+            <p>Select an SVG file to load and interact with. Choose lead time from the dropdown, then click load. Use the date slider to highlight nodes by their affiliation probabilities for a given target date; the slider activates after loading and the arrows step one month at a time. Use the MFPT dropdowns to calculate the mean first passage time from cluster i to cluster j.</p>
             <p><strong>Desktop:</strong>  Hover over nodes and edges to see details, click nodes for more information.</p>
             <p><strong>Mobile:</strong> Tap nodes and edges to see details, long press nodes for more information.</p>
         </div>
@@ -50,13 +50,17 @@
             <div class="control-row mfpt-row is-disabled" id="mfpt-row">
                 <label for="mfpt-node-i"><strong>Calculate MFPT:</strong></label>
                 <div class="mfpt-controls">
-                    <select id="mfpt-node-i" disabled>
-                        <option value="">Select Cluster i</option>
-                    </select>
+                    <div class="mfpt-select-container">
+                        <select id="mfpt-node-i" disabled>
+                            <option value="">Select Cluster i</option>
+                        </select>
+                    </div>
                     <span class="mfpt-to-label">to</span>
-                    <select id="mfpt-node-j" disabled>
-                        <option value="">Select Cluster j</option>
-                    </select>
+                    <div class="mfpt-select-container">
+                        <select id="mfpt-node-j" disabled>
+                            <option value="">Select Cluster j</option>
+                        </select>
+                    </div>
                     <span id="mfpt-value" class="mfpt-value">&mdash;</span>
                 </div>
             </div>
