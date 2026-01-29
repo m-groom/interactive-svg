@@ -18,9 +18,11 @@
     <div class="svg-selector">
         <div class="info-panel">
             <h3>Interactive Case Studies</h3>
-            <p>Select a target date and lead time to explore precursors for specific forecasts. The page will display both the spatio-temporal precursor pattern as well as the observed data for the date on which the forecast was made.</p>
-            <p><strong>Target Date:</strong> Choose any month from January 2002 to December 2024.</p>
-            <p><strong>Lead Time:</strong> Select forecast lead time from 1 to 24 months.</p>
+            <p>Select a target date (any month from January 2002 to December 2024) to explore precursors for specific forecasts. The page will display both the reconstructed and observed fields as movies for the selected date.</p>
+            <ul>
+                <li>Use the detrended toggle to switch between raw and detrended observed fields for the selected date.</li>
+                <li>Use the sync button to align the observed fields movie to the current time and play/pause state of the reconstructed fields movie.</li>
+            </ul>
         </div>
 
         <div class="selector-controls">
@@ -42,17 +44,6 @@
                 </div>
             </div>
             
-            <div class="control-row">
-                <label for="case-study-leadtime"><strong>Lead Time:</strong></label>
-                <div class="search-container">
-                    <input type="text" id="case-study-leadtime"
-                        placeholder="Select lead time (1-24 months) or type to search..." autocomplete="off">
-                    <div class="search-dropdown" id="case-study-leadtime-dropdown">
-                        <div class="dropdown-content" id="case-study-leadtime-dropdown-content"></div>
-                    </div>
-                </div>
-            </div>
-            
             <button id="case-study-load-btn" disabled>Load</button>
         </div>
 
@@ -61,8 +52,18 @@
             <div class="error-message" id="case-study-error" style="display: none;"></div>
 
             <div class="case-study-content" id="case-study-content" style="display: none;">
+                <div class="case-study-controls" id="case-study-controls" style="display: none;">
+                    <div class="case-study-toggle">
+                        <label class="detrend-switch" style="position: relative; display: inline-block; width: 50px; height: 26px; margin: 0;">
+                            <input type="checkbox" id="case-study-detrend-toggle" style="opacity: 0; width: 0; height: 0;">
+                            <span class="detrend-slider"></span>
+                        </label>
+                        <span>Detrended</span>
+                    </div>
+                    <button id="case-study-sync-btn" type="button">Sync</button>
+                </div>
                 <div id="case-study-media-container" style="display: flex; gap: 20px; justify-content: center;">
-                    <!-- Video and image will be inserted here to match modal layout exactly -->
+                    <!-- Case study and ground truth videos will be inserted here -->
                 </div>
             </div>
         </div>

@@ -17,12 +17,10 @@ export class CaseStudyController {
         this.targetMonthInput = null;
         this.targetMonthDropdown = null;
         this.targetMonthDropdownContent = null;
-        
-        // UI elements - lead time dropdown
-        this.leadTimeInput = null;
-        this.leadTimeDropdown = null;
-        this.leadTimeDropdownContent = null;
         this.loadButton = null;
+        this.syncButton = null;
+        this.detrendToggle = null;
+        this.controlsElement = null;
         
         // Display elements
         this.loadingElement = null;
@@ -34,11 +32,10 @@ export class CaseStudyController {
         this.dateUtils = new CaseStudyDateUtils();
         this.yearOptions = [];
         this.monthOptions = [];
-        this.leadTimeOptions = [];
         this.selectedYear = null;
         this.selectedMonth = null;
-        this.selectedLeadTime = null;
         this.currentCaseStudy = null;
+        this.useDetrendedGroundTruth = true;
         this.onCaseStudySelected = null; // Callback
         
         Logger.debug('CaseStudyController initialized');
@@ -57,17 +54,17 @@ export class CaseStudyController {
         this.targetMonthDropdown = document.querySelector(SELECTORS.CASE_STUDY_MONTH_DROPDOWN);
         this.targetMonthDropdownContent = document.querySelector(SELECTORS.CASE_STUDY_MONTH_DROPDOWN_CONTENT);
         
-        this.leadTimeInput = document.querySelector(SELECTORS.CASE_STUDY_LEADTIME_INPUT);
-        this.leadTimeDropdown = document.querySelector(SELECTORS.CASE_STUDY_LEADTIME_DROPDOWN);
-        this.leadTimeDropdownContent = document.querySelector(SELECTORS.CASE_STUDY_LEADTIME_DROPDOWN_CONTENT);
         this.loadButton = document.querySelector(SELECTORS.CASE_STUDY_LOAD_BUTTON);
+        this.syncButton = document.querySelector(SELECTORS.CASE_STUDY_SYNC_BUTTON);
+        this.detrendToggle = document.querySelector(SELECTORS.CASE_STUDY_DETREND_TOGGLE);
+        this.controlsElement = document.querySelector(SELECTORS.CASE_STUDY_CONTROLS);
         
         this.loadingElement = document.querySelector(SELECTORS.CASE_STUDY_LOADING);
         this.errorElement = document.querySelector(SELECTORS.CASE_STUDY_ERROR);
         this.contentElement = document.querySelector(SELECTORS.CASE_STUDY_CONTENT);
         this.mediaContainer = document.querySelector(SELECTORS.CASE_STUDY_MEDIA_CONTAINER);
         
-        if (!this.targetYearInput || !this.targetMonthInput || !this.leadTimeInput || !this.loadButton) {
+        if (!this.targetYearInput || !this.targetMonthInput || !this.loadButton) {
             Logger.error('Required case study UI elements not found');
             return;
         }
@@ -75,12 +72,11 @@ export class CaseStudyController {
         // Generate options
         this.yearOptions = this.generateYearOptions();
         this.monthOptions = this.generateMonthOptions();
-        this.leadTimeOptions = this.generateLeadTimeOptions();
         
         // Setup event listeners
         this.setupEventListeners();
         
-        Logger.debug(`CaseStudyController initialized with ${this.yearOptions.length} year, ${this.monthOptions.length} month, and ${this.leadTimeOptions.length} lead time options`);
+        Logger.debug(`CaseStudyController initialized with ${this.yearOptions.length} year and ${this.monthOptions.length} month options`);
     }
 
     generateYearOptions() {
@@ -116,22 +112,6 @@ export class CaseStudyController {
         return options;
     }
 
-    generateLeadTimeOptions() {
-        const options = [];
-        const availableLeadTimes = this.dateUtils.getAvailableLeadTimes();
-        
-        for (const leadTime of availableLeadTimes) {
-            options.push({
-                value: leadTime,
-                title: `${leadTime} Month${leadTime > 1 ? 's' : ''}`,
-                searchTerms: [`${leadTime} month`, `${leadTime} months`, `${leadTime}`],
-                leadTime: leadTime
-            });
-        }
-        
-        return options;
-    }
-
     setupEventListeners() {
         // Year input events
         this.targetYearInput.addEventListener(EVENTS.INPUT, (e) => this.handleYearSearch(e.target.value));
@@ -149,14 +129,6 @@ export class CaseStudyController {
         });
         this.targetMonthInput.addEventListener(EVENTS.KEYDOWN, (e) => this.handleMonthKeyNavigation(e));
         
-        // Lead time input events
-        this.leadTimeInput.addEventListener(EVENTS.INPUT, (e) => this.handleLeadTimeSearch(e.target.value));
-        this.leadTimeInput.addEventListener(EVENTS.CLICK, (e) => {
-            e.stopPropagation();
-            this.showLeadTimeDropdown(this.leadTimeOptions);
-        });
-        this.leadTimeInput.addEventListener(EVENTS.KEYDOWN, (e) => this.handleLeadTimeKeyNavigation(e));
-        
         // Load button event
         this.loadButton.addEventListener(EVENTS.CLICK, () => {
             if (this.validateAllInputs().isValid && this.onCaseStudySelected) {
@@ -164,6 +136,19 @@ export class CaseStudyController {
                 this.onCaseStudySelected(caseStudyData);
             }
         });
+
+        if (this.syncButton) {
+            this.syncButton.addEventListener(EVENTS.CLICK, () => {
+                this.syncGroundTruthToCaseStudy({ alignTime: true, respectPlayState: true });
+            });
+        }
+
+        if (this.detrendToggle) {
+            this.detrendToggle.addEventListener(EVENTS.CHANGE, () => {
+                this.useDetrendedGroundTruth = this.detrendToggle.checked;
+                this.swapGroundTruthVideo();
+            });
+        }
         
         // Global click to close dropdowns
         document.addEventListener(EVENTS.CLICK, (e) => {
@@ -255,47 +240,6 @@ export class CaseStudyController {
         this.handleKeyNavigation(e, this.targetMonthDropdown, this.hideMonthDropdown.bind(this), this.targetMonthInput);
     }
 
-    // Lead time dropdown methods
-    handleLeadTimeSearch(query) {
-        if (!query.trim()) {
-            this.showLeadTimeDropdown(this.leadTimeOptions);
-            this.selectedLeadTime = null;
-            this.validateInputs();
-            return;
-        }
-
-        const searchText = query.toLowerCase();
-        const filtered = this.leadTimeOptions.filter(option =>
-            option.title.toLowerCase().includes(searchText) ||
-            option.searchTerms.some(term => term.includes(searchText))
-        );
-        
-        this.showLeadTimeDropdown(filtered);
-    }
-
-    showLeadTimeDropdown(options) {
-        this.populateDropdown(this.leadTimeDropdownContent, options, (option) => this.selectLeadTimeOption(option));
-        this.leadTimeDropdown.classList.add(CSS_CLASSES.SHOW);
-        this.updateSearchContainerState(this.leadTimeInput, true);
-    }
-
-    hideLeadTimeDropdown() {
-        this.leadTimeDropdown.classList.remove(CSS_CLASSES.SHOW);
-        this.updateSearchContainerState(this.leadTimeInput, false);
-    }
-
-    selectLeadTimeOption(option) {
-        this.selectedLeadTime = option;
-        this.leadTimeInput.value = option.title;
-        this.validateInputs();
-        this.hideLeadTimeDropdown();
-        Logger.debug(`Selected lead time: ${option.title}`);
-    }
-
-    handleLeadTimeKeyNavigation(e) {
-        this.handleKeyNavigation(e, this.leadTimeDropdown, this.hideLeadTimeDropdown.bind(this), this.leadTimeInput);
-    }
-
     // Shared dropdown utilities
     populateDropdown(container, options, selectCallback) {
         if (options.length === 0) return;
@@ -369,7 +313,6 @@ export class CaseStudyController {
     hideAllDropdowns() {
         this.hideYearDropdown();
         this.hideMonthDropdown();
-        this.hideLeadTimeDropdown();
     }
 
     validateInputs() {
@@ -379,17 +322,16 @@ export class CaseStudyController {
     validateAllInputs() {
         const year = this.selectedYear ? this.selectedYear.value : null;
         const month = this.selectedMonth ? this.selectedMonth.value : null;
-        const leadTime = this.selectedLeadTime ? this.selectedLeadTime.value : null;
-        
-        if (!year || !month || !leadTime) {
+
+        if (!year || !month) {
             return {
                 isValid: false,
-                error: 'Please select target year, month, and lead time',
+                error: 'Please select target year and month',
                 data: null
             };
         }
         
-        return this.dateUtils.validateCaseStudyParameters(year, month, leadTime);
+        return this.dateUtils.validateCaseStudyParameters(year, month);
     }
 
     updateLoadButton() {
@@ -454,10 +396,8 @@ export class CaseStudyController {
     /**
      * Display case study content using exact modal layout
      * @param {Object} caseStudyData - Case study data
-     * @param {string} videoSrc - Video source URL
-     * @param {string} imageSrc - Image source URL
      */
-    displayCaseStudy(caseStudyData, videoSrc, imageSrc) {
+    displayCaseStudy(caseStudyData) {
         this.hideLoading();
         this.hideError();
         
@@ -471,36 +411,13 @@ export class CaseStudyController {
         const mediaFlexDirection = isNarrowLayout ? 'column' : 'row';
         const mediaGap = isNarrowLayout ? 10 : 20;
 
-        // Calculate video sizing (same logic as modal)
-        let videoContent = '';
-        if (videoSrc) {
-            const availableWidthPx = window.innerWidth * 0.8; // Approximate available width
-            const minColWidthPx = CONFIG.MIN_COLUMN_WIDTH_REM * 16; // Convert rem to px
-            const maxColWidthPx = CONFIG.MAX_COLUMN_WIDTH_REM * 16;
-            
-            const maxVideoHeightVh = CONFIG.MAX_VIDEO_HEIGHT_VH;
-            const vhInPx = window.innerHeight * (maxVideoHeightVh / 100);
-            let calculatedVideoWidth = vhInPx * CONFIG.VIDEO_ASPECT_RATIO;
-            const actualVideoColumnWidthPx = Math.max(minColWidthPx, Math.min(calculatedVideoWidth, maxColWidthPx));
-            
-            // Let CSS handle sizing instead of JavaScript
-            videoContent = `
-                <div class="video-container">
-                    <video controls autoplay loop muted playsinline preload="metadata" 
-                           style="width: auto; height: auto; aspect-ratio: ${CONFIG.VIDEO_ASPECT_RATIO}; border-radius: 0.5rem; object-fit: contain;">
-                        <source src="${videoSrc}" type="video/mp4">
-                        <p>Your browser does not support the video tag. Video file: ${videoSrc}</p>
-                    </video>
-                </div>
-            `;
-        }
-
-        // Image container (same logic as modal) - let CSS handle sizing
-        const imageContainer = `
-            <div id="case-study-image-container" class="image-container">
-                <img id="case-study-image" style="border-radius: 0.5rem; object-fit: contain; display: block; margin: 0; padding: 0; border: none; width: auto; height: auto;" src="${imageSrc}" alt="Climate pattern for ${caseStudyData.initial.displayString}" />
-            </div>
-        `;
+        // Build identical video containers for case study and ground truth
+        const caseStudyVideoSrc = caseStudyData.filePaths.caseStudyVideo;
+        const groundTruthVideoSrc = this.useDetrendedGroundTruth
+            ? caseStudyData.filePaths.groundTruthVideoDetrended
+            : caseStudyData.filePaths.groundTruthVideo;
+        const caseStudyContent = this.buildVideoMarkup('case-study-video', caseStudyVideoSrc, true);
+        const groundTruthContent = this.buildVideoMarkup('case-study-ground-truth-video', groundTruthVideoSrc, false);
 
         // Set up the media container with exact modal behavior
         this.mediaContainer.style.display = 'flex';
@@ -508,7 +425,22 @@ export class CaseStudyController {
         this.mediaContainer.style.gap = `${mediaGap}px`;
         this.mediaContainer.style.alignItems = 'flex-start';
         this.mediaContainer.style.justifyContent = 'center';
-        this.mediaContainer.innerHTML = videoContent + imageContainer;
+        this.mediaContainer.innerHTML = caseStudyContent + groundTruthContent;
+
+        const { caseStudyVideo, groundTruthVideo } = this.getCaseStudyVideos();
+        if (caseStudyVideo) {
+            caseStudyVideo.load();
+        }
+        if (groundTruthVideo) {
+            groundTruthVideo.load();
+        }
+
+        if (this.controlsElement) {
+            this.controlsElement.style.display = 'flex';
+        }
+        if (this.detrendToggle) {
+            this.detrendToggle.checked = this.useDetrendedGroundTruth;
+        }
 
         // Show content
         if (this.contentElement) {
@@ -516,18 +448,145 @@ export class CaseStudyController {
         }
         
         // Let CSS handle the sizing naturally - both video and image will respect max constraints
-        
+
         this.currentCaseStudy = caseStudyData;
+        this.setupCaseStudyVideoSync();
         Logger.info('Case study displayed successfully with modal-matching layout');
+    }
+
+    buildVideoMarkup(videoId, videoSrc, autoplay) {
+        if (!videoSrc) {
+            return '';
+        }
+        const autoplayAttribute = autoplay ? 'autoplay' : '';
+        return `
+            <div class="video-container">
+                <video id="${videoId}" controls loop muted playsinline preload="auto" ${autoplayAttribute}
+                       style="width: auto; height: auto; aspect-ratio: ${CONFIG.VIDEO_ASPECT_RATIO}; border-radius: 0.5rem; object-fit: contain;">
+                    <source src="${videoSrc}" type="video/mp4">
+                    <p>Your browser does not support the video tag. Video file: ${videoSrc}</p>
+                </video>
+            </div>
+        `;
+    }
+
+    getCaseStudyVideos() {
+        if (!this.mediaContainer) {
+            return { caseStudyVideo: null, groundTruthVideo: null };
+        }
+        return {
+            caseStudyVideo: this.mediaContainer.querySelector('#case-study-video'),
+            groundTruthVideo: this.mediaContainer.querySelector('#case-study-ground-truth-video')
+        };
+    }
+
+    setupCaseStudyVideoSync() {
+        const { caseStudyVideo, groundTruthVideo } = this.getCaseStudyVideos();
+        if (!caseStudyVideo || !groundTruthVideo) {
+            Logger.warn('[Case Study Sync] Videos not found for sync setup');
+            return;
+        }
+
+        const syncWhenReady = () => {
+            if (caseStudyVideo.readyState >= 1 && groundTruthVideo.readyState >= 1) {
+                this.syncGroundTruthToCaseStudy({ alignTime: true, respectPlayState: true });
+            }
+        };
+
+        caseStudyVideo.addEventListener('loadedmetadata', syncWhenReady);
+        groundTruthVideo.addEventListener('loadedmetadata', syncWhenReady);
+
+        caseStudyVideo.addEventListener('play', () => {
+            this.syncGroundTruthToCaseStudy({ alignTime: true, respectPlayState: true });
+        });
+
+        caseStudyVideo.addEventListener('pause', () => {
+            this.syncGroundTruthToCaseStudy({ alignTime: true, respectPlayState: true });
+        });
+
+        caseStudyVideo.addEventListener('seeked', () => {
+            this.syncGroundTruthToCaseStudy({ alignTime: true, respectPlayState: true });
+        });
+
+        caseStudyVideo.addEventListener('ratechange', () => {
+            this.syncGroundTruthToCaseStudy({ alignTime: false, respectPlayState: false });
+        });
+    }
+
+    syncGroundTruthToCaseStudy({ alignTime = true, respectPlayState = true } = {}) {
+        const { caseStudyVideo, groundTruthVideo } = this.getCaseStudyVideos();
+        if (!caseStudyVideo || !groundTruthVideo) {
+            Logger.debug('[Case Study Sync] Videos not found for sync');
+            return;
+        }
+
+        if (alignTime && Number.isFinite(caseStudyVideo.currentTime)) {
+            groundTruthVideo.currentTime = caseStudyVideo.currentTime;
+        }
+
+        groundTruthVideo.playbackRate = caseStudyVideo.playbackRate || 1;
+
+        if (respectPlayState) {
+            if (caseStudyVideo.paused) {
+                groundTruthVideo.pause();
+            } else {
+                const playPromise = groundTruthVideo.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(() => {});
+                }
+            }
+        }
+    }
+
+    swapGroundTruthVideo() {
+        if (!this.currentCaseStudy) {
+            return;
+        }
+
+        const { caseStudyVideo, groundTruthVideo } = this.getCaseStudyVideos();
+        if (!groundTruthVideo) {
+            return;
+        }
+
+        const targetSrc = this.useDetrendedGroundTruth
+            ? this.currentCaseStudy.filePaths.groundTruthVideoDetrended
+            : this.currentCaseStudy.filePaths.groundTruthVideo;
+
+        if (groundTruthVideo.src && groundTruthVideo.src.includes(targetSrc)) {
+            return;
+        }
+
+        const fallbackTime = caseStudyVideo ? caseStudyVideo.currentTime : 0;
+        const preservedTime = Number.isFinite(groundTruthVideo.currentTime)
+            ? groundTruthVideo.currentTime
+            : fallbackTime;
+        const shouldPlay = caseStudyVideo ? !caseStudyVideo.paused : false;
+        const playbackRate = caseStudyVideo ? caseStudyVideo.playbackRate || 1 : 1;
+
+        groundTruthVideo.pause();
+        groundTruthVideo.src = targetSrc;
+        groundTruthVideo.load();
+
+        const handleLoaded = () => {
+            groundTruthVideo.currentTime = preservedTime;
+            groundTruthVideo.playbackRate = playbackRate;
+            if (shouldPlay) {
+                const playPromise = groundTruthVideo.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(() => {});
+                }
+            }
+            groundTruthVideo.removeEventListener('loadedmetadata', handleLoaded);
+        };
+
+        groundTruthVideo.addEventListener('loadedmetadata', handleLoaded);
     }
 
     reset() {
         this.targetYearInput.value = '';
         this.targetMonthInput.value = '';
-        this.leadTimeInput.value = '';
         this.selectedYear = null;
         this.selectedMonth = null;
-        this.selectedLeadTime = null;
         this.currentCaseStudy = null;
         
         this.hideLoading();
@@ -535,7 +594,11 @@ export class CaseStudyController {
         if (this.contentElement) {
             this.contentElement.style.display = 'none';
         }
-        
+
+        if (this.controlsElement) {
+            this.controlsElement.style.display = 'none';
+        }
+
         this.updateLoadButton();
         this.hideAllDropdowns();
         
@@ -546,75 +609,11 @@ export class CaseStudyController {
         return this.currentCaseStudy;
     }
 
-    /**
-     * Sync image size to match video size exactly (same as modal)
-     */
-    syncImageToVideoSize() {
-        const video = this.mediaContainer?.querySelector('video');
-        const image = this.mediaContainer?.querySelector('#case-study-image');
-        
-        if (!video || !image) {
-            Logger.debug('[Case Study Sync] Video or image not found for size sync');
-            return;
-        }
-
-        const videoRect = video.getBoundingClientRect();
-        const isRowLayout = this.mediaContainer && this.mediaContainer.style.flexDirection === 'row';
-        
-        let finalVideoWidth = videoRect.width;
-        let finalVideoHeight = videoRect.height;
-        
-        // Check for overflow in side-by-side layout (same logic as modal)
-        if (isRowLayout) {
-            // Calculate available content width
-            const availableWidth = this.mediaContainer.offsetWidth;
-            
-            // Calculate required total width (video + image + gap)
-            const gapPx = parseFloat(this.mediaContainer.style.gap) || 20;
-            const requiredWidth = (videoRect.width * 2) + gapPx;
-            
-            // Apply scaling if content would overflow
-            if (requiredWidth > availableWidth) {
-                const scalingFactor = availableWidth / requiredWidth;
-                finalVideoWidth = videoRect.width * scalingFactor;
-                finalVideoHeight = videoRect.height * scalingFactor;
-                
-                Logger.debug(`[Case Study Sync] Scaling content by ${scalingFactor.toFixed(3)} (${requiredWidth}px → ${availableWidth}px)`);
-                
-                // Apply scaling to video as well
-                video.style.width = `${finalVideoWidth}px`;
-                video.style.height = `${finalVideoHeight}px`;
-            }
-        }
-        
-        Logger.debug(`[Case Study Sync] Setting image to match video: ${finalVideoWidth.toFixed(1)}px × ${finalVideoHeight.toFixed(1)}px`);
-        
-        // Apply exact video dimensions to image but respect CSS max constraints
-        image.style.width = `${finalVideoWidth}px`;
-        image.style.height = `${finalVideoHeight}px`;
-        // Don't override CSS max-width and max-height constraints
-        // image.style.maxWidth = 'none';
-        // image.style.maxHeight = 'none';
-        
-        // Verify the sizes match
-        setTimeout(() => {
-            const finalVideoRect = video.getBoundingClientRect();
-            const imageRect = image.getBoundingClientRect();
-            Logger.debug(`[Case Study Sync] Video: ${finalVideoRect.width.toFixed(1)}x${finalVideoRect.height.toFixed(1)}, Image: ${imageRect.width.toFixed(1)}x${imageRect.height.toFixed(1)}`);
-            
-            if (Math.abs(finalVideoRect.width - imageRect.width) > 1 || Math.abs(finalVideoRect.height - imageRect.height) > 1) {
-                Logger.warn(`[Case Study Sync] Video and image sizes don't match after sync!`);
-            } else {
-                Logger.debug(`[Case Study Sync] ✓ Video and image sizes match perfectly`);
-            }
-        }, 10);
-    }
 
     getStats() {
         return {
             hasSelectedYear: !!this.selectedYear,
             hasSelectedMonth: !!this.selectedMonth,
-            hasSelectedLeadTime: !!this.selectedLeadTime,
             hasCurrentCaseStudy: !!this.currentCaseStudy,
             isValid: this.validateAllInputs().isValid,
             dateUtilsSummary: this.dateUtils.getValidationSummary()

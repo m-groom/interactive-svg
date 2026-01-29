@@ -2058,15 +2058,19 @@ export class InteractiveSVGApp {
             this.caseStudyController.showLoading();
             
             // Validate file existence first
-            const videoExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.video);
-            const imageExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.image);
+            const caseStudyVideoExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.caseStudyVideo);
+            const groundTruthVideoExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.groundTruthVideo);
+            const groundTruthDetrendedExists = await this.caseStudyDataLoader.fileExists(caseStudyData.filePaths.groundTruthVideoDetrended);
             
             let errorMessages = [];
-            if (!videoExists) {
-                errorMessages.push(`Video file not found: ${caseStudyData.filePaths.video}`);
+            if (!caseStudyVideoExists) {
+                errorMessages.push(`Case study video not found: ${caseStudyData.filePaths.caseStudyVideo}`);
             }
-            if (!imageExists) {
-                errorMessages.push(`Image file not found: ${caseStudyData.filePaths.image}`);
+            if (!groundTruthVideoExists) {
+                errorMessages.push(`Ground truth video not found: ${caseStudyData.filePaths.groundTruthVideo}`);
+            }
+            if (!groundTruthDetrendedExists) {
+                errorMessages.push(`Detrended ground truth video not found: ${caseStudyData.filePaths.groundTruthVideoDetrended}`);
             }
             
             if (errorMessages.length > 0) {
@@ -2074,16 +2078,10 @@ export class InteractiveSVGApp {
             }
             
             // Files exist, display the case study
-            this.caseStudyController.displayCaseStudy(
-                caseStudyData,
-                caseStudyData.filePaths.video,
-                caseStudyData.filePaths.image
-            );
+            this.caseStudyController.displayCaseStudy(caseStudyData);
             
             Logger.info('Case study loaded successfully:', {
-                target: caseStudyData.target.displayString,
-                leadTime: caseStudyData.leadTime,
-                initial: caseStudyData.initial.displayString
+                target: caseStudyData.target.displayString
             });
 
         } catch (error) {

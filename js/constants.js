@@ -114,10 +114,10 @@ export const SELECTORS = {
     CASE_STUDY_MONTH_INPUT: '#target-month',
     CASE_STUDY_MONTH_DROPDOWN: '#target-month-dropdown',
     CASE_STUDY_MONTH_DROPDOWN_CONTENT: '#target-month-dropdown-content',
-    CASE_STUDY_LEADTIME_INPUT: '#case-study-leadtime',
-    CASE_STUDY_LEADTIME_DROPDOWN: '#case-study-leadtime-dropdown',
-    CASE_STUDY_LEADTIME_DROPDOWN_CONTENT: '#case-study-leadtime-dropdown-content',
     CASE_STUDY_LOAD_BUTTON: '#case-study-load-btn',
+    CASE_STUDY_SYNC_BUTTON: '#case-study-sync-btn',
+    CASE_STUDY_DETREND_TOGGLE: '#case-study-detrend-toggle',
+    CASE_STUDY_CONTROLS: '#case-study-controls',
     CASE_STUDY_LOADING: '#case-study-loading',
     CASE_STUDY_ERROR: '#case-study-error',
     CASE_STUDY_CONTENT: '#case-study-content',
@@ -172,6 +172,7 @@ export const EVENTS = {
     
     // Input events
     INPUT: 'input',
+    CHANGE: 'change',
     
     // DOM events
     DOM_CONTENT_LOADED: 'DOMContentLoaded'

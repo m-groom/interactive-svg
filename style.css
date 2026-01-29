@@ -1331,6 +1331,30 @@ footer a {
   margin-top: var(--spacing-lg);
 }
 
+.case-study-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 1rem;
+}
+
+.case-study-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#case-study-sync-btn {
+  width: auto;
+  min-width: 120px;
+  padding: 10px 16px;
+  text-transform: none;
+  letter-spacing: 0.3px;
+}
+
 /* Case study media container - match modal media container and use full available space */
 #case-study-media-container {
   max-width: 100% !important;
@@ -1391,24 +1415,22 @@ footer a {
   max-width: 25vw;
 }
 
-/* Lead time dropdown should take full available width like other pages */
-.case-studies-page .selector-controls .control-row:last-child .search-container {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Alternative backup selector */
-.case-studies-page label[for="case-study-leadtime"] + .search-container {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
 /* Mobile responsive layout for case studies - match modal behavior */
 @media (max-width: 900px) {
   #case-study-media-container {
     flex-direction: column !important;
     gap: 1rem !important;
     width: 95% !important;
+  }
+
+  .case-study-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  #case-study-sync-btn {
+    width: 100%;
   }
   
   .case-studies-page .control-row .search-container:first-of-type {
@@ -1420,13 +1442,6 @@ footer a {
   .case-studies-page .control-row .search-container:nth-of-type(2) {
     width: 140px;
     max-width: 40vw;
-  }
-  
-  /* Lead time dropdown mobile responsive - full width */
-  .case-studies-page .selector-controls .control-row:last-child .search-container,
-  .case-studies-page label[for="case-study-leadtime"] + .search-container {
-    width: 100% !important;
-    max-width: 100% !important;
   }
   
   /* Ensure media content is properly sized on mobile - consistent sizing */
@@ -1446,13 +1461,6 @@ footer a {
     max-width: none;
     margin-right: 0;
     margin-bottom: 0.5rem;
-  }
-  
-  /* Lead time dropdown small mobile - full width */
-  .case-studies-page .selector-controls .control-row:last-child .search-container,
-  .case-studies-page label[for="case-study-leadtime"] + .search-container {
-    width: 100% !important;
-    max-width: none !important;
   }
   
   .control-row {
@@ -1497,15 +1505,18 @@ footer a {
   border-radius: 50%;
 }
 
-#detrend-toggle-checkbox:checked + .detrend-slider {
+#detrend-toggle-checkbox:checked + .detrend-slider,
+#case-study-detrend-toggle:checked + .detrend-slider {
   background-color: var(--primary-color);
 }
 
-#detrend-toggle-checkbox:focus + .detrend-slider {
+#detrend-toggle-checkbox:focus + .detrend-slider,
+#case-study-detrend-toggle:focus + .detrend-slider {
   box-shadow: 0 0 1px var(--primary-color);
 }
 
-#detrend-toggle-checkbox:checked + .detrend-slider:before {
+#detrend-toggle-checkbox:checked + .detrend-slider:before,
+#case-study-detrend-toggle:checked + .detrend-slider:before {
   transform: translateX(24px);
 }
 
