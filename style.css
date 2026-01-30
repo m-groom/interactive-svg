@@ -1382,7 +1382,8 @@ footer a {
   min-width: 0;
 }
 
-/* Precursor video containers: white background for letterbox padding with rounded corners */
+/* Case study + precursor video containers: white background for letterbox padding with rounded corners */
+#case-study-media-container .video-container,
 #precursor-media-container .video-container {
   background: white;
   border-radius: var(--border-radius);
