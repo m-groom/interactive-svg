@@ -1484,6 +1484,7 @@ footer a {
     height: auto !important;
   }
 
+  #case-study-media-container video,
   #precursor-media-container video {
     max-width: 100% !important;
     width: 100% !important;
