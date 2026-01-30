@@ -12,8 +12,9 @@ export const CONFIG = {
     MODAL_PADDING_REM: 4,
     MAX_VIDEO_HEIGHT_VH: 60,
     
-    // Video aspect ratio
-    VIDEO_ASPECT_RATIO: 3634 / 4457,
+    // Video aspect ratios
+    VIDEO_ASPECT_RATIO: 3634 / 4457,           // Composite/case study videos
+    IMPORTANCE_VIDEO_ASPECT_RATIO: 3634 / 4534, // Importance/correlation videos
     
     // Search and interaction
     MAX_TOOLTIP_WIDTH_VW: 90,
@@ -122,6 +123,22 @@ export const SELECTORS = {
     CASE_STUDY_ERROR: '#case-study-error',
     CASE_STUDY_CONTENT: '#case-study-content',
     CASE_STUDY_MEDIA_CONTAINER: '#case-study-media-container',
+
+    // Search interface - Precursor Plots section
+    PRECURSOR_SEASON_INPUT: '#precursor-season',
+    PRECURSOR_SEASON_DROPDOWN: '#precursor-season-dropdown',
+    PRECURSOR_SEASON_DROPDOWN_CONTENT: '#precursor-season-dropdown-content',
+    PRECURSOR_CLASS_INPUT: '#precursor-class',
+    PRECURSOR_CLASS_DROPDOWN: '#precursor-class-dropdown',
+    PRECURSOR_CLASS_DROPDOWN_CONTENT: '#precursor-class-dropdown-content',
+    PRECURSOR_TYPE_TOGGLE: '#precursor-type-toggle',
+    PRECURSOR_LOAD_BUTTON: '#precursor-load-btn',
+    PRECURSOR_SYNC_BUTTON: '#precursor-sync-btn',
+    PRECURSOR_CONTROLS: '#precursor-controls',
+    PRECURSOR_LOADING: '#precursor-loading',
+    PRECURSOR_ERROR: '#precursor-error',
+    PRECURSOR_CONTENT: '#precursor-content',
+    PRECURSOR_MEDIA_CONTAINER: '#precursor-media-container',
     
     // SVG elements
     SVG_NODES: 'path[fill-rule="nonzero"][stroke-width="1"]',

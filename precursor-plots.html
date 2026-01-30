@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Interactive Precursor Identification Plots</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1><a href="https://michaelgroom.net/index.html">Michael Groom</a></h1>
+    <hr>
+    <h2><a href="index.html"> Overview</a> | <a href="markov-chain.html">Markov Chains</a> | <a href="dag.html">DAGs</a> | <a href="case-studies.html">Case Studies</a> | Precursors
+    </h2>
+    <br><br>
+
+    <div class="svg-selector">
+        <div class="info-panel">
+            <h3>Interactive Precursor Identification Plots</h3>
+            <p>Select a target season and/or class to load the precursor identification movies for that configuration.</p>
+            <ul>
+                <li>Use the plot type toggle to switch between importance maps and correlation maps.</li>
+                <li>Use the sync button to align the composite movie to the current time and play/pause state of the importance/correlation movie.</li>
+            </ul>
+        </div>
+
+        <div class="selector-controls">
+            <div class="control-row">
+                <label for="precursor-season"><strong>Select Target Season:</strong></label>
+                <div class="search-container">
+                    <input type="text" id="precursor-season"
+                        placeholder="Select from available target seasons or type to search..." autocomplete="off">
+                    <div class="search-dropdown" id="precursor-season-dropdown">
+                        <div class="dropdown-content" id="precursor-season-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-row">
+                <label for="precursor-class"><strong>Select Target Class:</strong></label>
+                <div class="search-container">
+                    <input type="text" id="precursor-class"
+                        placeholder="Select from available target classes or type to search..." autocomplete="off">
+                    <div class="search-dropdown" id="precursor-class-dropdown">
+                        <div class="dropdown-content" id="precursor-class-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="precursor-load-btn" disabled>Load</button>
+        </div>
+
+        <div class="content-container">
+            <div class="loading" id="precursor-loading" style="display: none;">Loading precursor plots...</div>
+            <div class="error-message" id="precursor-error" style="display: none;"></div>
+
+            <div class="precursor-content" id="precursor-content" style="display: none;">
+                <div class="precursor-controls" id="precursor-controls" style="display: none;">
+                    <div class="precursor-type-toggle">
+                        <span>Importance</span>
+                        <label class="detrend-switch" style="position: relative; display: inline-block; width: 50px; height: 26px; margin: 0;">
+                            <input type="checkbox" id="precursor-type-toggle" style="opacity: 0; width: 0; height: 0;">
+                            <span class="detrend-slider"></span>
+                        </label>
+                        <span>Correlation</span>
+                    </div>
+                    <button id="precursor-sync-btn" type="button">Sync</button>
+                </div>
+                <div id="precursor-media-container" style="display: flex; gap: 20px; justify-content: center;">
+                    <!-- Precursor and composite movies will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+    <hr>
+
+    <!-- Load the modular JavaScript files -->
+    <script type="module">
+        import { InteractiveSVGApp } from './js/InteractiveSVGApp.js';
+        
+        // Initialize only the Precursor Plots section
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new InteractiveSVGApp();
+            app.initializePrecursorPlotsSection();
+        });
+    </script>
+
+</body>
+
+<footer>
+    © 2025 Michael Groom. Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+</footer>
+
+</html>

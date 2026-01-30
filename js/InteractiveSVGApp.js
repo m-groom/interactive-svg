@@ -11,6 +11,7 @@ import { JSONParser } from './JSONParser.js';
 import { BaseParser } from './BaseParser.js';
 import { CaseStudyController } from './CaseStudyController.js';
 import { BaseDataLoader } from './BaseDataLoader.js';
+import { PrecursorPlotsController } from './PrecursorPlotsController.js';
 
 export class InteractiveSVGApp {
     constructor() {
@@ -32,6 +33,10 @@ export class InteractiveSVGApp {
         // Case Study section components
         this.caseStudyController = new CaseStudyController();
         this.caseStudyDataLoader = new BaseDataLoader();
+
+        // Precursor Plots section components
+        this.precursorPlotsController = new PrecursorPlotsController();
+        this.precursorDataLoader = new BaseDataLoader();
         
         this.isInitialized = false;
 
@@ -2043,6 +2048,31 @@ export class InteractiveSVGApp {
     }
 
     /**
+     * Initialize only the Precursor Plots section (for precursor-plots.html page)
+     */
+    async initializePrecursorPlotsSection() {
+        try {
+            Logger.info('Initializing Precursor Plots section only...');
+
+            this.precursorPlotsController.initialize();
+            this.precursorDataLoader.initialize(
+                document.querySelector(SELECTORS.PRECURSOR_LOADING),
+                document.querySelector(SELECTORS.PRECURSOR_ERROR)
+            );
+
+            this.precursorPlotsController.setOnPrecursorSelectedCallback((selectionData) => {
+                this.loadPrecursorPlots(selectionData);
+            });
+
+            this.isInitialized = true;
+            Logger.info('Precursor Plots section initialized successfully');
+        } catch (error) {
+            Logger.error('Failed to initialize Precursor Plots section:', error);
+            this.showPrecursorError('Failed to initialize Precursor Plots section: ' + error.message);
+        }
+    }
+
+    /**
      * Load and display case study content
      * @param {Object} caseStudyData - Case study parameters and file paths
      */
@@ -2091,6 +2121,44 @@ export class InteractiveSVGApp {
     }
 
     /**
+     * Load and display precursor plots
+     * @param {Object} selectionData - Precursor selection and file paths
+     */
+    async loadPrecursorPlots(selectionData) {
+        if (!this.isInitialized) {
+            Logger.error('App not initialized');
+            return;
+        }
+
+        try {
+            Logger.debug('Loading precursor plots:', selectionData);
+
+            this.precursorPlotsController.showLoading();
+
+            const precursorVideoExists = await this.precursorDataLoader.fileExists(selectionData.filePaths.precursorVideo);
+            const compositeVideoExists = await this.precursorDataLoader.fileExists(selectionData.filePaths.compositeVideo);
+
+            const errorMessages = [];
+            if (!precursorVideoExists) {
+                errorMessages.push(`Precursor video not found: ${selectionData.filePaths.precursorVideo}`);
+            }
+            if (!compositeVideoExists) {
+                errorMessages.push(`Composite video not found: ${selectionData.filePaths.compositeVideo}`);
+            }
+
+            if (errorMessages.length > 0) {
+                throw new Error(errorMessages.join('\n'));
+            }
+
+            this.precursorPlotsController.displayPrecursorPlots(selectionData);
+            Logger.info('Precursor plots loaded successfully');
+        } catch (error) {
+            Logger.error('Failed to load precursor plots:', error);
+            this.precursorPlotsController.showError('Failed to load precursor plots: ' + error.message);
+        }
+    }
+
+    /**
      * Show case study error message
      * @param {string} message - Error message
      */
@@ -2101,6 +2169,19 @@ export class InteractiveSVGApp {
             errorElement.style.display = 'block';
         }
         Logger.error('Case Study App Error:', message);
+    }
+
+    /**
+     * Show precursor plots error message
+     * @param {string} message - Error message
+     */
+    showPrecursorError(message) {
+        const errorElement = document.querySelector(SELECTORS.PRECURSOR_ERROR);
+        if (errorElement) {
+            errorElement.innerHTML = message;
+            errorElement.style.display = 'block';
+        }
+        Logger.error('Precursor Plots App Error:', message);
     }
 
     reset() {
