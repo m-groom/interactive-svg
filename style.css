@@ -1443,6 +1443,13 @@ footer a {
     width: 95% !important;
   }
 
+  #case-study-media-container .video-container,
+  #case-study-media-container .image-container,
+  #precursor-media-container .video-container {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
   .case-study-controls,
   .precursor-controls {
     flex-direction: column;
