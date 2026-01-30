@@ -1482,6 +1482,12 @@ footer a {
     width: 90vw !important;
     height: auto !important;
   }
+
+  #precursor-media-container video {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+  }
 }
 
 @media (max-width: 480px) {
