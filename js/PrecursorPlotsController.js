@@ -349,8 +349,9 @@ export class PrecursorPlotsController {
             return null;
         }
 
-        const precursorVideo = `mp4_files/${type}-${targetClass}-${season}.mp4`;
-        const compositeVideo = `mp4_files/composites/${type}-${targetClass}-${season}.mp4`;
+        const classForFilename = targetClass === 'neutral' ? 'Neutral' : targetClass;
+        const precursorVideo = `mp4_files/${type}-${classForFilename}-${season}.mp4`;
+        const compositeVideo = `mp4_files/composites/${type}-${classForFilename}-${season}.mp4`;
 
         return {
             target: {
