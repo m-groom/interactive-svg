@@ -4,6 +4,10 @@ This directory contains the source for the interactive web app hosted at `https:
 
 The app turns publication-quality **static SVG figures** (e.g. Markov chain plots and DAGs) into **interactive visualisations** by attaching a data/metadata layer (JSON) and UI behaviour (tooltips, modals, highlighting, simple calculators) in client-side JavaScript.
 
+## Vibe Code Alert
+
+This codebase was mostly written with a mixture of Claude Code and Cursor as a fun project to help me learn how to get the best out of these tools. There may be certain edge cases that I have not caught and I am not likely to support it in any meaningful way, it's merely provided here as inspiration for others.
+
 ## Quick start (local)
 
 Because the pages use ES modules (`<script type="module">`), you should serve the directory via a local web server (opening `index.html` via `file://` may fail in some browsers).
